@@ -1,0 +1,3193 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"><!-- viewport-fit=cover = env(safe-area-inset-*) fonctionnel sur iPhone notch -->
+  <title>Globe Intelligence — Dashboard Mondial</title>
+  <meta name="description" content="Dashboard mondial interactif avec globe 3D Three.js : météo temps réel, séismes USGS, conflits géopolitiques, cryptos et station ISS.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://abd-chenaoui.github.io/projects/globe-dashboard/">
+  <meta property="og:title" content="Globe Intelligence — Dashboard Mondial">
+  <meta property="og:description" content="Globe 3D interactif avec données temps réel : météo, séismes, ISS, crypto.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://abd-chenaoui.github.io/projects/globe-dashboard/">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+
+  <!-- Three.js via importmap — no build step needed -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.161/build/three.module.js",
+      "jsm/": "https://cdn.jsdelivr.net/npm/three@0.161/examples/jsm/"
+    }
+  }
+  </script>
+
+  <style>
+    /* ============================================================
+       DESIGN TOKENS — système de design complet
+       ============================================================ */
+    :root {
+      /* ── Palette ── */
+      --bg-deep:      #030309;
+      --bg-panel:     #07071a;
+      --bg-card:      rgba(255,255,255,0.035);
+      --bg-hover:     rgba(249,168,201,0.07);
+      --bg-glass:     rgba(7,7,26,0.85);
+
+      --sakura:       #f9a8c9;
+      --sakura-dim:   rgba(249,168,201,0.3);
+      --sakura-glow:  rgba(249,168,201,0.15);
+      --sakura-deep:  rgba(249,168,201,0.06);
+
+      --gold:         #fb923c;
+      --gold-dim:     rgba(251,146,60,0.35);
+      --indigo:       #818cf8;
+      --cyan:         #67e8f9;
+      --green:        #4ade80;
+      --red:          #f87171;
+      --yellow:       #fbbf24;
+      --purple:       #c084fc;
+
+      --text-hi:      #ede0eb;
+      --text-md:      rgba(237,224,235,0.7);
+      --text-lo:      rgba(237,224,235,0.4);
+
+      --border:       rgba(249,168,201,0.08);
+      --border-hi:    rgba(249,168,201,0.22);
+      --border-glass: rgba(255,255,255,0.06);
+
+      /* ── Typographie ── */
+      --font-head:    'Syne', sans-serif;
+      --font-body:    'DM Sans', sans-serif;
+
+      /* ── Layout ── */
+      --sidebar-w:    264px;
+      --sidebar-r:    272px;
+      --header-h:     52px;
+      --markets-h:    52px;
+      --ticker-h:     38px;
+      --radius:       10px;
+      --radius-sm:    6px;
+      --radius-lg:    14px;
+
+      /* ── Espacement ── */
+      --sp-xs: 4px;
+      --sp-sm: 8px;
+      --sp-md: 14px;
+      --sp-lg: 20px;
+
+      /* ── Transitions ── */
+      --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+      --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+      --dur-fast:    150ms;
+      --dur-base:    280ms;
+      --dur-slow:    500ms;
+    }
+
+    /* ============================================================
+       RESET & BASE
+       ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      /* dvh = dynamic viewport height : tient compte de la barre URL mobile */
+      height: 100dvh;
+      height: 100%; /* fallback navigateurs anciens */
+      overflow: hidden;
+    }
+
+    body {
+      height: 100dvh;
+      height: 100%;
+      overflow: hidden;
+      width: 100%;         /* empêche le scroll horizontal — 100% au lieu de 100vw qui inclut la scrollbar */
+      background: var(--bg-deep);
+      color: var(--text-hi);
+      font-family: var(--font-body);
+      font-size: 13px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-family: var(--font-body);
+      color: inherit;
+    }
+
+    /* Focus visible — accessibilité clavier */
+    :focus-visible {
+      outline: 2px solid var(--sakura);
+      outline-offset: 3px;
+      border-radius: var(--radius-sm);
+    }
+
+    /* ============================================================
+       APP SHELL
+       ============================================================ */
+    #app {
+      display: grid;
+      grid-template-rows: var(--header-h) var(--markets-h) 1fr var(--ticker-h);
+      grid-template-columns: var(--sidebar-w) 1fr var(--sidebar-r);
+      height: 100dvh;
+      height: 100%;   /* fallback */
+      max-height: 100dvh;
+      overflow: hidden; /* pas de scrollbars qui dépassent du cadre */
+    }
+
+    /* ============================================================
+       HEADER
+       ============================================================ */
+    .db-header {
+      grid-column: 1 / -1;
+      grid-row: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 var(--sp-lg);
+      background: linear-gradient(180deg, rgba(3,3,9,0.97) 0%, rgba(7,7,26,0.92) 100%);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      z-index: 100; /* 100 > globe-tooltip(50) > mobile-info-sheet(500) — header toujours visible */
+    }
+
+    .db-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-head);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--text-hi);
+      text-transform: uppercase;
+    }
+
+    .db-logo-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #4a7fd4 0%, #0d2a70 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      box-shadow: 0 0 0 1px rgba(74,127,212,0.4), 0 0 18px rgba(74,127,212,0.35);
+      animation: globe-pulse 4s ease-in-out infinite;
+    }
+
+    @keyframes globe-pulse {
+      0%, 100% { box-shadow: 0 0 0 1px rgba(74,127,212,0.4), 0 0 18px rgba(74,127,212,0.35); }
+      50%       { box-shadow: 0 0 0 1px rgba(74,127,212,0.5), 0 0 30px rgba(74,127,212,0.5); }
+    }
+
+    .db-logo-badge {
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      padding: 2px 7px;
+      border-radius: 20px;
+      background: var(--sakura-deep);
+      border: 1px solid var(--sakura-dim);
+      color: var(--sakura);
+      text-transform: uppercase;
+      animation: badge-blink 3s ease-in-out infinite;
+    }
+
+    @keyframes badge-blink {
+      0%, 90%, 100% { opacity: 1; }
+      95%           { opacity: 0.5; }
+    }
+
+    .db-header-right {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-lg);
+    }
+
+    .db-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--text-lo);
+      letter-spacing: 0.01em;
+    }
+
+    .db-status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px rgba(74,222,128,0.8);
+      animation: ping 2.5s ease-out infinite;
+    }
+
+    @keyframes ping {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(74,222,128,0.5); }
+      60%       { box-shadow: 0 0 0 6px rgba(74,222,128,0); }
+    }
+
+    .db-clock {
+      font-family: var(--font-head);
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+      color: var(--text-md);
+      letter-spacing: 0.06em;
+      padding: 3px 10px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+    }
+
+    /* Bouton retour portfolio */
+    .db-back {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-lo);
+      text-decoration: none;
+      padding: 5px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      transition: color var(--dur-fast) var(--ease-smooth),
+                  border-color var(--dur-fast) var(--ease-smooth),
+                  background var(--dur-fast) var(--ease-smooth);
+    }
+
+    .db-back:hover {
+      color: var(--sakura);
+      border-color: var(--sakura-dim);
+      background: var(--sakura-deep);
+    }
+
+    /* ── Bouton STOP/PLAY rotation globe ── */
+    .btn-rotate {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #fb923c;                      /* orange STOP par défaut (actif) */
+      padding: 5px 13px;
+      border-radius: 9999px;               /* pill */
+      border: 1.5px solid rgba(251,146,60,0.5);
+      background: rgba(251,146,60,0.08);
+      /* Transition douce vers tous les états */
+      transition: color 0.25s ease,
+                  border-color 0.25s ease,
+                  background 0.25s ease,
+                  box-shadow 0.25s ease,
+                  transform 0.15s cubic-bezier(0.34,1.56,0.64,1);
+      will-change: transform;
+      cursor: pointer;
+    }
+
+    /* Pulse animé — signale que quelque chose tourne, "clique pour stopper" */
+    @keyframes rotate-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(251,146,60,0.35); }
+      50%       { box-shadow: 0 0 0 6px rgba(251,146,60,0); }
+    }
+    .btn-rotate.active {
+      animation: rotate-pulse 2s ease infinite;
+    }
+
+    /* Hover quand la rotation tourne : renforcer le signal */
+    .btn-rotate.active:hover {
+      background: rgba(251,146,60,0.15);
+      border-color: rgba(251,146,60,0.8);
+      box-shadow: 0 0 16px rgba(251,146,60,0.3);
+      transform: scale(1.04);
+    }
+
+    /* Tap / clic : "satisfaisant" — petit scale-down puis spring */
+    .btn-rotate:active { transform: scale(0.92); }
+
+    /* État STOPPÉ : bouton devient "Tourner" en cyan discret */
+    .btn-rotate:not(.active) {
+      color: rgba(103,232,249,0.7);
+      border-color: rgba(103,232,249,0.25);
+      background: rgba(103,232,249,0.05);
+      animation: none;
+    }
+    .btn-rotate:not(.active):hover {
+      color: var(--cyan);
+      border-color: rgba(103,232,249,0.5);
+      background: rgba(103,232,249,0.1);
+      transform: scale(1.04);
+    }
+
+    /* Icône : globe qui tourne quand actif, statique sinon */
+    .btn-rotate-icon { display: inline-block; line-height: 1; transition: transform 0.4s ease; }
+    .btn-rotate.active .btn-rotate-icon { animation: spin 3s linear infinite; }
+
+    /* ============================================================
+       SIDEBAR GAUCHE
+       ============================================================ */
+    .db-sidebar {
+      background: var(--bg-glass);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .sidebar-section {
+      padding: 14px var(--sp-md) 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-lo);
+      margin-bottom: 10px;
+    }
+
+    /* Navigation des thèmes */
+    .theme-nav { display: flex; flex-direction: column; gap: 2px; }
+
+    .theme-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: var(--radius);
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text-lo);
+      position: relative;
+      transition: color var(--dur-fast) var(--ease-smooth),
+                  background var(--dur-fast) var(--ease-smooth);
+    }
+
+    .theme-btn:hover { background: var(--bg-hover); color: var(--text-hi); }
+
+    .theme-btn.active {
+      background: var(--bg-hover);
+      color: var(--text-hi);
+    }
+
+    /* Barre active animée */
+    .theme-btn.active::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 50%;
+      transform: translateY(-50%);
+      width: 3px; height: 55%;
+      border-radius: 0 3px 3px 0;
+      background: linear-gradient(180deg, var(--sakura), var(--gold));
+      animation: bar-grow 0.3s var(--ease-spring) both;
+    }
+
+    @keyframes bar-grow {
+      from { height: 0; opacity: 0; }
+      to   { height: 55%; opacity: 1; }
+    }
+
+    .theme-icon {
+      width: 28px; height: 28px;
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+      transition: background var(--dur-fast) var(--ease-smooth),
+                  border-color var(--dur-fast) var(--ease-smooth);
+    }
+
+    .theme-btn.active .theme-icon {
+      background: var(--sakura-glow);
+      border-color: var(--sakura-dim);
+    }
+
+    .theme-name { flex: 1; }
+
+    .theme-count {
+      font-size: 10px;
+      color: var(--text-lo);
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      padding: 1px 6px;
+      border-radius: 20px;
+      font-variant-numeric: tabular-nums;
+      min-width: 24px;
+      text-align: center;
+      transition: color var(--dur-fast), border-color var(--dur-fast), background var(--dur-fast);
+    }
+
+    .theme-btn.active .theme-count {
+      color: var(--sakura);
+      border-color: var(--sakura-dim);
+      background: var(--sakura-deep);
+    }
+
+    /* Indicateur de chargement inline */
+    .theme-btn .loading-dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      border: 1.5px solid var(--sakura);
+      border-top-color: transparent;
+      animation: spin 0.7s linear infinite;
+      display: none;
+      flex-shrink: 0;
+    }
+
+    .theme-btn.loading .loading-dot  { display: block; }
+    .theme-btn.loading .theme-count  { display: none; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Panneau d'information (clic sur un pin) */
+    .info-panel {
+      flex: 1;
+      padding: var(--sp-md);
+      overflow-y: auto;
+    }
+
+    .info-panel::-webkit-scrollbar { width: 3px; }
+    .info-panel::-webkit-scrollbar-track { background: transparent; }
+    .info-panel::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
+
+    .info-empty {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      height: 100%; gap: 10px;
+      color: var(--text-lo); text-align: center;
+    }
+
+    .info-empty-icon { font-size: 28px; opacity: 0.35; }
+    .info-empty-text { font-size: 12px; line-height: 1.6; }
+
+    .info-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--sp-md);
+      animation: slideIn 0.35s var(--ease-spring) both;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(12px) scale(0.98); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .info-card-header {
+      display: flex; align-items: flex-start; gap: 10px;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .info-card-icon { font-size: 22px; line-height: 1; }
+
+    .info-card-title {
+      font-family: var(--font-head);
+      font-size: 14px; font-weight: 700;
+      line-height: 1.2; color: var(--text-hi);
+    }
+
+    .info-card-sub { font-size: 11px; color: var(--text-lo); margin-top: 2px; }
+
+    .info-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 0; border-bottom: 1px solid var(--border);
+      font-size: 12px;
+    }
+
+    .info-row:last-child { border-bottom: none; }
+    .info-row-label { color: var(--text-lo); }
+    .info-row-value { font-weight: 500; color: var(--text-hi); text-align: right; }
+
+    /* Badges colorés */
+    .badge {
+      display: inline-block;
+      padding: 2px 7px; border-radius: 20px;
+      font-size: 10px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+
+    .badge-red    { background: rgba(248,113,113,0.12); color: var(--red);    border: 1px solid rgba(248,113,113,0.25); }
+    .badge-yellow { background: rgba(251,191,36,0.12);  color: var(--yellow); border: 1px solid rgba(251,191,36,0.25);  }
+    .badge-green  { background: rgba(74,222,128,0.12);  color: var(--green);  border: 1px solid rgba(74,222,128,0.25);  }
+    .badge-cyan   { background: rgba(103,232,249,0.12); color: var(--cyan);   border: 1px solid rgba(103,232,249,0.25); }
+    .badge-purple { background: rgba(192,132,252,0.12); color: var(--purple); border: 1px solid rgba(192,132,252,0.25); }
+
+    /* Légende du globe */
+    .legend { display: flex; flex-direction: column; gap: 6px; }
+
+    .legend-item {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 11px; color: var(--text-lo);
+    }
+
+    .legend-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%; flex-shrink: 0;
+    }
+
+    /* ============================================================
+       GLOBE MAIN AREA
+       ============================================================ */
+    .db-globe {
+      grid-column: 2;    /* colonne centrale — entre les deux sidebars */
+      grid-row: 3;       /* ligne principale sous les barres header/marchés */
+      position: relative;
+      overflow: hidden;
+      min-height: 0;     /* permet à 1fr de fonctionner dans la grille */
+      background: radial-gradient(ellipse at 55% 45%, #08082e 0%, #030309 65%);
+    }
+
+    /* Three.js contrôle les dimensions — pas de override sur le canvas */
+    .db-globe canvas { display: block; }
+
+    /* Vignette subtile sur les bords du globe */
+    .db-globe::after {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse at 0% 50%, rgba(3,3,9,0.5) 0%, transparent 40%),
+        radial-gradient(ellipse at 100% 50%, rgba(3,3,9,0.5) 0%, transparent 40%),
+        radial-gradient(ellipse at 50% 0%, rgba(3,3,9,0.3) 0%, transparent 30%);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Overlay de chargement */
+    .globe-loader {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 18px;
+      background: var(--bg-deep);
+      z-index: 5;
+      transition: opacity 0.8s var(--ease-smooth);
+    }
+
+    .globe-loader.hidden { opacity: 0; pointer-events: none; }
+
+    /* Anneaux de chargement concentriques */
+    .loader-rings {
+      position: relative; width: 56px; height: 56px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .loader-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 2px solid transparent;
+    }
+
+    .loader-ring:nth-child(1) {
+      width: 56px; height: 56px;
+      border-top-color: var(--sakura);
+      animation: spin 1.2s linear infinite;
+    }
+
+    .loader-ring:nth-child(2) {
+      width: 38px; height: 38px;
+      border-top-color: var(--gold);
+      animation: spin 0.9s linear infinite reverse;
+    }
+
+    .loader-ring:nth-child(3) {
+      width: 20px; height: 20px;
+      border-top-color: var(--cyan);
+      animation: spin 0.6s linear infinite;
+    }
+
+    .loader-text {
+      font-size: 11px;
+      color: var(--text-lo);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* Tooltip survol des pins */
+    .globe-tooltip {
+      position: absolute;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-hi);
+      border-radius: var(--radius);
+      padding: 8px 12px;
+      font-size: 12px;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity var(--dur-fast) var(--ease-smooth),
+                  transform var(--dur-fast) var(--ease-smooth);
+      z-index: 50; /* 50 : visible au-dessus du contenu, en dessous du header(100) et du sheet(500) */
+      max-width: 200px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .globe-tooltip.visible { opacity: 1; transform: translateY(0); }
+    .globe-tooltip-name { font-family: var(--font-head); font-weight: 700; color: var(--text-hi); margin-bottom: 3px; font-size: 12px; }
+    .globe-tooltip-info { color: var(--text-lo); font-size: 11px; }
+
+    /* ============================================================
+       TICKER BAS
+       ============================================================ */
+    .db-ticker {
+      grid-column: 1 / -1;
+      grid-row: 4;
+      background: linear-gradient(180deg, rgba(3,3,9,0.0) 0%, rgba(3,3,9,0.98) 100%);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .ticker-label {
+      flex-shrink: 0;
+      padding: 0 16px;
+      font-family: var(--font-head);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gold);
+      border-right: 1px solid var(--border);
+      height: 100%;
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
+      gap: 5px;
+    }
+
+    .ticker-scroll-wrap {
+      flex: 1;
+      overflow: hidden;
+      /* Fondu sur les bords — plus élégant que les borders */
+      mask-image: linear-gradient(to right, transparent 0%, black 3%, black 97%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, black 3%, black 97%, transparent 100%);
+    }
+
+    .ticker-track {
+      display: flex;
+      animation: ticker-move 70s linear infinite;
+      white-space: nowrap;
+      will-change: transform; /* Accélération GPU pour l'animation continue */
+    }
+
+    /* Pause au hover pour lire les valeurs */
+    .ticker-scroll-wrap:hover .ticker-track { animation-play-state: paused; }
+
+    @keyframes ticker-move {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* Barre marchés : même pattern de marquee que le ticker */
+    .markets-track {
+      display: flex;
+      animation: ticker-move 50s linear infinite;
+      white-space: nowrap;
+    }
+    .db-markets:hover .markets-track { animation-play-state: paused; }
+
+    .ticker-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 16px;
+      border-right: 1px solid var(--border);
+      height: var(--ticker-h);
+      flex-shrink: 0;
+    }
+
+    .ticker-sym {
+      font-family: var(--font-head);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-hi);
+    }
+
+    .ticker-price { font-size: 12px; color: var(--text-hi); font-variant-numeric: tabular-nums; }
+    .ticker-change { font-size: 11px; font-weight: 500; }
+    .ticker-change.up   { color: var(--green); }
+    .ticker-change.down { color: var(--red); }
+
+    /* ============================================================
+       BARRE MARCHÉS (row 2)
+       ============================================================ */
+    .db-markets {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      background: rgba(5,5,16,0.96);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .markets-label {
+      flex-shrink: 0;
+      padding: 0 16px;
+      font-family: var(--font-head);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gold);
+      border-right: 1px solid var(--border);
+      height: 100%;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .markets-items {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: none;
+    }
+
+    .markets-items::-webkit-scrollbar { display: none; }
+
+    .market-item {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 18px;
+      border-right: 1px solid var(--border);
+      height: var(--markets-h);
+      min-width: 115px;
+      cursor: default;
+      transition: background var(--dur-fast) var(--ease-smooth);
+      position: relative;
+    }
+
+    .market-item:hover { background: var(--bg-hover); }
+
+    /* Flash animation quand un marché bouge fortement (ajouté en JS) */
+    .market-item.flash-up {
+      animation: market-flash-up 0.6s ease both;
+    }
+    .market-item.flash-down {
+      animation: market-flash-down 0.6s ease both;
+    }
+
+    @keyframes market-flash-up {
+      0%   { background: rgba(74,222,128,0.15); }
+      100% { background: transparent; }
+    }
+    @keyframes market-flash-down {
+      0%   { background: rgba(248,113,113,0.15); }
+      100% { background: transparent; }
+    }
+
+    .market-top {
+      display: flex; align-items: center; gap: 5px;
+      margin-bottom: 2px;
+    }
+
+    .market-sym {
+      font-family: var(--font-head);
+      font-size: 11px; font-weight: 700;
+      color: var(--text-hi); letter-spacing: 0.03em;
+    }
+
+    .market-tag {
+      font-size: 8px; padding: 1px 5px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.05);
+      color: var(--text-lo);
+      border: 1px solid var(--border);
+      letter-spacing: 0.04em;
+    }
+
+    /* Tags colorés selon le type */
+    .market-tag[data-type="Indice US"] { color: var(--cyan);   border-color: rgba(103,232,249,0.2); background: rgba(103,232,249,0.06); }
+    .market-tag[data-type="Indice EU"] { color: var(--indigo); border-color: rgba(129,140,248,0.2); background: rgba(129,140,248,0.06); }
+    .market-tag[data-type="Indice UK"] { color: var(--yellow); border-color: rgba(251,191,36,0.2);  background: rgba(251,191,36,0.06);  }
+    .market-tag[data-type="Indice JP"] { color: var(--sakura); border-color: rgba(249,168,201,0.2); background: rgba(249,168,201,0.06); }
+    .market-tag[data-type="Indice HK"] { color: var(--purple); border-color: rgba(192,132,252,0.2); background: rgba(192,132,252,0.06); }
+    .market-tag[data-type="Forex"]     { color: var(--gold);   border-color: rgba(251,146,60,0.2);  background: rgba(251,146,60,0.06);  }
+
+    .market-bottom { display: flex; align-items: center; gap: 8px; }
+
+    .market-price {
+      font-size: 13px; font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      color: var(--text-hi);
+    }
+
+    .market-change { font-size: 11px; font-weight: 500; }
+    .market-change.up   { color: var(--green); }
+    .market-change.down { color: var(--red); }
+
+    .market-refresh {
+      font-size: 9px; color: var(--text-lo);
+      padding: 0 14px; flex-shrink: 0; white-space: nowrap;
+    }
+
+    /* ============================================================
+       SIDEBAR ACTUALITÉS (colonne droite)
+       ============================================================ */
+    .db-news {
+      grid-column: 3;
+      grid-row: 3;
+      background: var(--bg-glass);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .news-header {
+      padding: 12px var(--sp-md) 10px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .news-title {
+      font-family: var(--font-head);
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-hi);
+    }
+
+    .news-source {
+      font-size: 9px; color: var(--text-lo);
+      display: flex; align-items: center; gap: 5px;
+    }
+
+    /* Point rouge LIVE clignotant */
+    .news-live-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--red);
+      box-shadow: 0 0 5px rgba(248,113,113,0.8);
+      animation: ping 2s ease-out infinite;
+    }
+
+    .news-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px 0;
+    }
+
+    .news-list::-webkit-scrollbar { width: 3px; }
+    .news-list::-webkit-scrollbar-track { background: transparent; }
+    .news-list::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
+
+    /* Skeleton de chargement */
+    .news-skeleton {
+      padding: 10px var(--sp-md);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .skel-line {
+      border-radius: 4px;
+      background: linear-gradient(90deg,
+        rgba(255,255,255,0.04) 25%,
+        rgba(255,255,255,0.08) 50%,
+        rgba(255,255,255,0.04) 75%
+      );
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer {
+      from { background-position: -200% 0; }
+      to   { background-position: 200% 0; }
+    }
+
+    .skel-cat   { height: 8px;  width: 50px;  margin-bottom: 6px; }
+    .skel-title { height: 12px; width: 100%;  margin-bottom: 4px; }
+    .skel-title2{ height: 12px; width: 75%;   margin-bottom: 6px; }
+    .skel-meta  { height: 8px;  width: 60px; }
+
+    .news-item {
+      display: block;
+      padding: 10px var(--sp-md);
+      border-bottom: 1px solid var(--border);
+      text-decoration: none;
+      transition: background var(--dur-fast) var(--ease-smooth);
+      cursor: pointer;
+      /* Animation d'entrée staggerée via --i */
+      animation: news-slide-in 0.4s var(--ease-spring) both;
+      animation-delay: calc(var(--i, 0) * 40ms);
+    }
+
+    @keyframes news-slide-in {
+      from { opacity: 0; transform: translateX(12px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .news-item:last-child { border-bottom: none; }
+    .news-item:hover { background: var(--bg-hover); }
+
+    .news-item-cat {
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--sakura);
+      margin-bottom: 4px;
+    }
+
+    /* line-clamp : propriété standard + préfixe webkit pour compatibilité */
+    .news-item-title {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-hi);
+      line-height: 1.45;
+      margin-bottom: 5px;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      line-clamp: 2;              /* propriété standard CSS — corrige l'avertissement */
+    }
+
+    .news-item-meta {
+      font-size: 10px; color: var(--text-lo);
+      display: flex; align-items: center; gap: 5px;
+    }
+
+    .news-item-meta::before {
+      content: ''; display: inline-block;
+      width: 3px; height: 3px; border-radius: 50%;
+      background: var(--text-lo);
+    }
+
+    .news-empty {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      height: 100%; gap: 8px;
+      color: var(--text-lo); font-size: 12px;
+      text-align: center;
+    }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+
+    /* Barre thèmes mobile : cachée par défaut sur desktop — n'apparaît que dans le @media 768px */
+    .mobile-theme-bar { display: none; }
+
+    @media (max-width: 1100px) {
+      :root { --sidebar-r: 0px; }
+      .db-news { display: none; }
+    }
+
+    @media (max-width: 768px) {
+      :root { --sidebar-w: 0px; --sidebar-r: 0px; }
+
+      /* Cacher les sidebars — remplacées par la barre thèmes en bas */
+      .db-sidebar, .db-news { display: none; }
+
+      /* Header compact : logo + boutons icônes seulement */
+      .db-header { padding: 0 10px; gap: 8px; }
+      .db-status  { display: none; }
+      .db-clock   { display: none; }
+      .db-logo    { font-size: 12px; gap: 7px; }
+      .db-logo-badge { display: none; }
+      /* Sur mobile : pill compact mais label visible — c'est le CTA principal */
+      .btn-rotate { padding: 5px 10px; font-size: 10px; gap: 4px; }
+      .btn-rotate-icon { font-size: 12px; }
+      .btn-rotate-label { display: inline; }
+      .db-back    { padding: 5px 8px; font-size: 0; gap: 0; } /* icône seule */
+      .db-back svg { display: block; width: 14px; height: 14px; }
+      .db-header-right { gap: 6px; }
+
+      /* Grille : ajouter une ligne pour la barre mobile en bas */
+      #app {
+        grid-template-rows: var(--header-h) var(--markets-h) 1fr var(--ticker-h) 52px;
+      }
+
+      /* Globe : hauteur minimale pour qu'il soit visible sur mobile */
+      .db-globe {
+        grid-column: 1 / -1;  /* pleine largeur sur mobile (1 colonne) */
+        grid-row: 3;
+        min-height: 260px;    /* plancher visible même si 1fr calcule 0 */
+      }
+
+      /* ── Barre thèmes mobile — design 2026 ── */
+      .mobile-theme-bar {
+        display: flex;
+        grid-column: 1 / -1;
+        grid-row: 5;
+        /* Fond avec bord top subtil + blur */
+        background: rgba(5, 5, 18, 0.96);
+        border-top: 1px solid rgba(249, 168, 201, 0.1);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+        /* Padding pour que les pills ne touchent pas les bords */
+        gap: 6px;
+        padding: 8px 10px;
+        align-items: center;
+      }
+      .mobile-theme-bar::-webkit-scrollbar { display: none; }
+
+      /* Pill horizontal : icon + label sur la même ligne */
+      .mob-theme-btn {
+        display: inline-flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 12px 6px 8px;
+        border-radius: 9999px;    /* pill parfaite */
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: rgba(237, 224, 235, 0.45);
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+        transition: transform 0.15s var(--ease-spring),
+                    background 0.2s ease,
+                    color 0.2s ease,
+                    border-color 0.2s ease,
+                    box-shadow 0.2s ease;
+        cursor: pointer;
+        font-family: var(--font-body);
+        flex-shrink: 0;
+        will-change: transform;
+      }
+      /* Icône légèrement plus grande */
+      .mob-theme-btn .mob-icon {
+        font-size: 14px;
+        line-height: 1;
+        flex-shrink: 0;
+      }
+      /* Tap feedback : scale down */
+      .mob-theme-btn:active { transform: scale(0.93); }
+
+      /* État hover (tablette) */
+      .mob-theme-btn:hover {
+        background: rgba(249, 168, 201, 0.08);
+        color: rgba(237, 224, 235, 0.8);
+        border-color: rgba(249, 168, 201, 0.15);
+      }
+
+      /* État actif — pill sakura lumineux */
+      .mob-theme-btn.active {
+        background: rgba(249, 168, 201, 0.12);
+        border-color: rgba(249, 168, 201, 0.4);
+        color: #f9a8c9;
+        box-shadow: 0 0 12px rgba(249, 168, 201, 0.2),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      }
+
+      /* Barre marchés : overflow hidden (le track interne défile automatiquement) */
+      .db-markets { overflow: hidden; }
+      .market-item { flex-shrink: 0; }
+    }
+
+    /* Petit mobile : titre logo encore plus compact */
+    @media (max-width: 380px) {
+      .db-logo-text { display: none; }
+    }
+
+    /* ============================================================
+       SCROLLBAR GLOBAL
+       ============================================================ */
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
+
+    /* ============================================================
+       PREFERS-REDUCED-MOTION — accessibilité
+       ============================================================ */
+    @media (prefers-reduced-motion: reduce) {
+      /* Transitions UI seulement — ne pas tuer les animations fonctionnelles (ticker, marquee) */
+      *:not(.ticker-track):not(.markets-track),
+      *:not(.ticker-track):not(.markets-track)::before,
+      *:not(.ticker-track):not(.markets-track)::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+    /* ============================================================
+       MOBILE INFO BOTTOM SHEET
+       Slide-up depuis le bas quand on clique un pin sur mobile
+       ============================================================ */
+    .mobile-sheet-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 490;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .mobile-sheet-overlay.open { display: block; opacity: 1; }
+
+    .mobile-info-sheet {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: #0d0d22;
+      border-top: 1px solid rgba(249,168,201,0.15);
+      border-radius: 18px 18px 0 0;
+      z-index: 500;
+      transform: translateY(100%);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      max-height: min(65vh, 65dvh); /* dvh = s'adapte à la barre d'adresse iOS Safari */
+      overflow-y: auto;
+      padding-bottom: env(safe-area-inset-bottom, 16px);
+    }
+    .mobile-info-sheet.open { transform: translateY(0); }
+
+    /* Poignée de drag en haut */
+    .sheet-drag-handle {
+      width: 36px; height: 4px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 2px;
+      margin: 10px auto 0;
+    }
+
+    /* Header du sheet */
+    .sheet-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .sheet-icon { font-size: 22px; line-height: 1; flex-shrink: 0; }
+    .sheet-header-text { flex: 1; min-width: 0; }
+    .sheet-title {
+      display: block;
+      font-family: var(--font-head);
+      font-size: 15px; font-weight: 700;
+      color: #ede0eb;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .sheet-sub {
+      display: block;
+      font-size: 11px; color: rgba(237,224,235,0.45);
+      margin-top: 2px;
+    }
+    .sheet-close-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+      border: none; color: rgba(255,255,255,0.4);
+      cursor: pointer; flex-shrink: 0;
+      transition: background 0.15s, color 0.15s;
+    }
+    .sheet-close-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+
+    /* Rangées de données */
+    .sheet-rows {
+      padding: 8px 16px 16px;
+    }
+    .sheet-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      gap: 12px;
+    }
+    .sheet-row:last-child { border-bottom: none; }
+    .sheet-row-label {
+      font-size: 11px; color: rgba(237,224,235,0.4);
+      flex-shrink: 0;
+    }
+    .sheet-row-value {
+      font-size: 12px; font-weight: 600; color: #ede0eb;
+      text-align: right;
+    }
+    .sheet-row-full {
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .sheet-row-full-label {
+      font-size: 10px; color: rgba(237,224,235,0.4);
+      margin-bottom: 4px;
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .sheet-row-full-text {
+      font-size: 12px; color: #ede0eb; line-height: 1.6;
+    }
+
+  </style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ── HEADER ── -->
+  <header class="db-header">
+    <div class="db-logo">
+      <div class="db-logo-icon">🌍</div>
+      Globe Intelligence
+      <span class="db-logo-badge">Live</span>
+    </div>
+    <div class="db-header-right">
+      <div class="db-status">
+        <div class="db-status-dot"></div>
+        Données en temps réel
+      </div>
+      <div class="db-clock" id="clock">--:--:--</div>
+      <button class="btn-rotate active" id="btn-rotate" aria-label="Stopper la rotation du globe" title="Stopper la rotation (R)">
+        <span class="btn-rotate-icon">⏸</span>
+        <span class="btn-rotate-label">STOP</span>
+      </button>
+      <a href="../../index.html" class="db-back">
+        ← Portfolio
+      </a>
+    </div>
+  </header>
+
+  <!-- ── BARRE MARCHÉS (row 2) ── -->
+  <section class="db-markets" id="markets-bar">
+    <div class="markets-label">
+      📊 Indices &amp; Forex
+    </div>
+    <div class="markets-items" id="markets-items">
+      <div class="market-item">
+        <div class="market-top"><span class="market-sym">—</span></div>
+        <div class="market-bottom"><span class="market-price">Chargement…</span></div>
+      </div>
+    </div>
+    <div class="market-refresh" id="markets-refresh">Live</div>
+  </section>
+
+  <!-- ── SIDEBAR GAUCHE (row 3, col 1) ── -->
+  <aside class="db-sidebar">
+    <!-- Theme selector -->
+    <div class="sidebar-section">
+      <div class="sidebar-label">Thèmes</div>
+      <nav class="theme-nav" id="theme-nav">
+
+        <button class="theme-btn active" data-theme="meteo">
+          <span class="theme-icon">🌤</span>
+          <span class="theme-name">Météo</span>
+          <span class="theme-count" id="count-meteo">57</span>
+          <span class="loading-dot"></span>
+        </button>
+
+        <button class="theme-btn" data-theme="seismes">
+          <span class="theme-icon">🌋</span>
+          <span class="theme-name">Séismes</span>
+          <span class="theme-count" id="count-seismes">—</span>
+          <span class="loading-dot"></span>
+        </button>
+
+        <button class="theme-btn" data-theme="conflits">
+          <span class="theme-icon">⚔️</span>
+          <span class="theme-name">Conflits</span>
+          <span class="theme-count" id="count-conflits">10</span>
+          <span class="loading-dot"></span>
+        </button>
+
+        <button class="theme-btn" data-theme="crypto">
+          <span class="theme-icon">📈</span>
+          <span class="theme-name">Crypto & Finance</span>
+          <span class="theme-count" id="count-crypto">12</span>
+          <span class="loading-dot"></span>
+        </button>
+
+        <button class="theme-btn" data-theme="iss">
+          <span class="theme-icon">🛰</span>
+          <span class="theme-name">Station ISS</span>
+          <span class="theme-count" id="count-iss">1</span>
+          <span class="loading-dot"></span>
+        </button>
+
+        <button class="theme-btn" data-theme="population">
+          <span class="theme-icon">👥</span>
+          <span class="theme-name">Population</span>
+          <span class="theme-count" id="count-population">57</span>
+          <span class="loading-dot"></span>
+        </button>
+
+        <button class="theme-btn" data-theme="vols">
+          <span class="theme-icon">✈️</span>
+          <span class="theme-name">Vols en direct</span>
+          <span class="theme-count" id="count-vols">—</span>
+          <span class="loading-dot"></span>
+        </button>
+
+      </nav>
+    </div>
+
+    <!-- Legend -->
+    <div class="sidebar-section" id="legend-section">
+      <div class="sidebar-label">Légende</div>
+      <div class="legend" id="legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#67e8f9"></div>
+          Ville — données météo
+        </div>
+      </div>
+    </div>
+
+    <!-- Info panel (click on a pin) -->
+    <div class="info-panel" id="info-panel">
+      <div class="info-empty">
+        <div class="info-empty-icon">🌐</div>
+        <div class="info-empty-text">
+          Cliquez sur un point<br>du globe pour les détails
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── GLOBE ── -->
+  <main class="db-globe" id="globe-container">
+    <div class="globe-loader" id="globe-loader">
+      <div class="loader-rings">
+        <div class="loader-ring"></div>
+        <div class="loader-ring"></div>
+        <div class="loader-ring"></div>
+      </div>
+      <div class="loader-text">Chargement du globe…</div>
+    </div>
+    <div class="globe-tooltip" id="tooltip">
+      <div class="globe-tooltip-name" id="tt-name"></div>
+      <div class="globe-tooltip-info" id="tt-info"></div>
+    </div>
+  </main>
+
+  <!-- ── NEWS SIDEBAR (row 3, col 3) ── -->
+  <aside class="db-news">
+    <div class="news-header">
+      <span class="news-title">Actualités</span>
+      <span class="news-source">
+        <span class="news-live-dot"></span>
+        BBC · Al Jazeera · Guardian
+      </span>
+    </div>
+    <div class="news-list" id="news-list">
+      <!-- Skeletons visibles au chargement — remplacés par le JS -->
+      <div class="news-skeleton"><div class="skel-line skel-cat"></div><div class="skel-line skel-title"></div><div class="skel-line skel-title2"></div><div class="skel-line skel-meta"></div></div>
+      <div class="news-skeleton"><div class="skel-line skel-cat"></div><div class="skel-line skel-title"></div><div class="skel-line skel-title2"></div><div class="skel-line skel-meta"></div></div>
+      <div class="news-skeleton"><div class="skel-line skel-cat"></div><div class="skel-line skel-title"></div><div class="skel-line skel-title2"></div><div class="skel-line skel-meta"></div></div>
+      <div class="news-skeleton"><div class="skel-line skel-cat"></div><div class="skel-line skel-title"></div><div class="skel-line skel-title2"></div><div class="skel-line skel-meta"></div></div>
+      <div class="news-skeleton"><div class="skel-line skel-cat"></div><div class="skel-line skel-title"></div><div class="skel-line skel-title2"></div><div class="skel-line skel-meta"></div></div>
+    </div>
+  </aside>
+
+  <!-- ── TICKER (row 4) ── -->
+  <footer class="db-ticker">
+    <div class="ticker-label">⚡ Crypto</div>
+    <div class="ticker-scroll-wrap">
+      <div class="ticker-track" id="ticker-track">
+        <!-- Populated by JS -->
+        <div class="ticker-item">
+          <span class="ticker-sym">Chargement…</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ── BARRE THÈMES MOBILE (row 5, visible seulement ≤768px) ── -->
+  <nav class="mobile-theme-bar" id="mobile-theme-nav" aria-label="Changer de thème">
+    <button class="mob-theme-btn active" data-theme="meteo" aria-label="Thème Météo mondiale">
+      <span class="mob-icon" aria-hidden="true">🌤</span>Météo
+    </button>
+    <button class="mob-theme-btn" data-theme="seismes" aria-label="Thème Séismes">
+      <span class="mob-icon" aria-hidden="true">🌋</span>Séismes
+    </button>
+    <button class="mob-theme-btn" data-theme="conflits" aria-label="Thème Conflits armés">
+      <span class="mob-icon" aria-hidden="true">⚔️</span>Conflits
+    </button>
+    <button class="mob-theme-btn" data-theme="crypto" aria-label="Thème Finance & crypto">
+      <span class="mob-icon" aria-hidden="true">📈</span>Finance
+    </button>
+    <button class="mob-theme-btn" data-theme="iss" aria-label="Thème Station spatiale ISS">
+      <span class="mob-icon" aria-hidden="true">🛸</span>ISS
+    </button>
+    <button class="mob-theme-btn" data-theme="population" aria-label="Thème Démographie mondiale">
+      <span class="mob-icon" aria-hidden="true">👥</span>Population
+    </button>
+    <button class="mob-theme-btn" data-theme="vols" aria-label="Thème Trafic aérien">
+      <span class="mob-icon" aria-hidden="true">✈️</span>Vols
+    </button>
+  </nav>
+
+</div><!-- #app -->
+
+
+<script type="module">
+/* ================================================================
+   GLOBE INTELLIGENCE — Main Module
+   Tech : Three.js r161 • OrbitControls • USGS • Open-Meteo • CoinGecko
+
+   FIXES vs v1 :
+   - Init différé dans window 'load' + RAF → container a ses dimensions
+   - pinsGroup enfant de earthGroup → hérite tilt + rotation automatiquement
+   - outputColorSpace = SRGBColorSpace (correct)
+   - Pas de override CSS sur le canvas (Three.js gère les dimensions)
+   ================================================================ */
+
+import * as THREE from 'three';
+import { OrbitControls } from 'jsm/controls/OrbitControls.js';
+
+/* ── Texture base (mitchcamza / Earth3D on GitHub) ── */
+const IMG = 'https://raw.githubusercontent.com/mitchcamza/Earth3D/main/static/textures/';
+
+/* ================================================================
+   SÉCURITÉ — helpers XSS
+   Toute donnée externe (API, RSS) doit passer par esc() avant
+   d'être injectée dans innerHTML.
+   ================================================================ */
+
+/**
+ * Échappe les caractères HTML dangereux — prévient les injections XSS.
+ * @param {*} s - Valeur à échapper
+ * @returns {string}
+ */
+function esc(s) {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
+/**
+ * Valide qu'une URL est bien http/https — prévient les injections javascript:.
+ * @param {string} url
+ * @returns {string} URL sécurisée ou '#'
+ */
+function safeUrl(url) {
+  try {
+    const u = new URL(String(url ?? ''));
+    return (u.protocol === 'https:' || u.protocol === 'http:') ? u.href : '#';
+  } catch { return '#'; }
+}
+
+/* ================================================================
+   VARIABLES GLOBALES — initialisées dans initGlobe()
+   ================================================================ */
+const container = document.getElementById('globe-container');
+let W, H, scene, camera, renderer, controls;
+let earthGroup, rotatingGroup, earthMesh, lightsMesh, cloudsMesh, atmoMesh, stars;
+let pinsGroup;   /* enfant de rotatingGroup → tourne avec la Terre */
+let frame = 0;
+let autoRotate = true; /* état de la rotation automatique */
+
+const raycaster = new THREE.Raycaster();
+const mouse     = new THREE.Vector2(-9999, -9999);
+const tooltip   = document.getElementById('tooltip');
+const ttName    = document.getElementById('tt-name');
+const ttInfo    = document.getElementById('tt-info');
+
+/* ================================================================
+   FIX #1 : init différée dans window 'load' + requestAnimationFrame
+   → le CSS Grid a calculé les dimensions du container AVANT d'init Three.js
+   ================================================================ */
+window.addEventListener('load', () => {
+  /* Double rAF : garantit que le CSS Grid a calculé les tailles de cellule
+     AVANT que Three.js mesure container.offsetWidth/Height.
+     Sur mobile, un seul rAF peut encore retourner offsetHeight = 0. */
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    try {
+      initGlobe();
+    } catch (err) {
+      console.error('[Globe] Erreur init :', err);
+      document.getElementById('globe-loader').innerHTML =
+        `<div style="color:#f87171;text-align:center;padding:20px">
+          <div style="font-size:28px;margin-bottom:8px">⚠️</div>
+          <div>Impossible de charger WebGL</div>
+          <div style="font-size:11px;opacity:.6;margin-top:4px">${err.message}</div>
+        </div>`;
+    }
+  }));
+});
+
+function initGlobe() {
+  /* FIX #1 : dimensions mesurées APRÈS layout CSS */
+  /* Calcul robuste des dimensions — ne retourne jamais 0.
+     Sur mobile les sidebars sont 0px donc le container = pleine largeur. */
+  const isMobile = window.innerWidth <= 768;
+  W = container.offsetWidth  || window.innerWidth;
+  H = container.offsetHeight ||
+      (isMobile
+        ? window.innerHeight - 52 - 36 - 32 - 52  /* header + markets + ticker + mobile-bar */
+        : window.innerHeight - 96);
+
+  /* ── Scene + Camera ── */
+  scene  = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 500);
+  camera.position.set(0, 0, 3.5);
+
+  /* ── Renderer ── */
+  renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
+  renderer.setSize(W, H);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  /* FIX #3 : SRGBColorSpace = espace de sortie correct */
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  container.appendChild(renderer.domElement);
+
+  /* ── OrbitControls ── */
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping   = true;
+  controls.dampingFactor   = 0.06;
+  controls.enableZoom      = true;
+  controls.minDistance     = 1.8;
+  controls.maxDistance     = 7;
+  /* autoRotate désactivé : c'est rotatingGroup qui tourne, pas la caméra
+     Deux rotations simultanées donneraient une expérience confuse sur un dashboard */
+  controls.autoRotate = false;
+
+  /* ── Lumières ── */
+  const sunLight = new THREE.DirectionalLight(0xffffff, 2.0);
+  sunLight.position.set(-2.2, 0.7, 1.6);
+  scene.add(sunLight);
+  scene.add(new THREE.AmbientLight(0x111133, 0.4));
+
+  /* ── Groupe Terre ──────────────────────────────────────────────
+     earthGroup   : inclinaison axiale 23.4° — NE TOURNE PAS
+     rotatingGroup: tourne en y → contient meshes + pins ensemble
+                    Les pins suivent la surface sans aucune synchro JS
+     cloudsMesh   : rotation légèrement plus rapide (nuages dérivants)
+     ─────────────────────────────────────────────────────────── */
+  earthGroup = new THREE.Group();
+  earthGroup.rotation.z = (-23.4 * Math.PI) / 180;
+  scene.add(earthGroup);
+
+  /* rotatingGroup = pivot unique qui fait tourner tout solidairement */
+  rotatingGroup = new THREE.Group();
+  earthGroup.add(rotatingGroup);
+
+  const loader = new THREE.TextureLoader();
+  /* SphereGeometry(r, widthSeg, heightSeg) — lon=0 est en +X
+     → latLonToVec3 doit utiliser -x pour aligner la texture */
+  const sphereGeo = new THREE.SphereGeometry(1, 64, 64);
+
+  /* Surface terrestre — day map + bump + specular (mitchcamza / Earth3D) */
+  earthMesh = new THREE.Mesh(sphereGeo, new THREE.MeshPhongMaterial({
+    map:         loader.load(IMG + '2k_earth_daymap.jpg'),
+    bumpMap:     loader.load(IMG + '8081_earthbump4k.jpg'),
+    bumpScale:   0.05,
+    specularMap: loader.load(IMG + '8081_earthspec4k.jpg'),
+    specular:    new THREE.Color(0x444466),
+    shininess:   12,
+  }));
+  rotatingGroup.add(earthMesh);
+
+  /* Lumières nocturnes → dans rotatingGroup */
+  lightsMesh = new THREE.Mesh(sphereGeo, new THREE.MeshBasicMaterial({
+    map:      loader.load(IMG + '8081_earthlights4k.jpg'),
+    blending: THREE.AdditiveBlending,
+  }));
+  rotatingGroup.add(lightsMesh);
+
+  /* Atmosphère Fresnel → dans rotatingGroup */
+  atmoMesh = new THREE.Mesh(sphereGeo, buildFresnelMat(0x3a9bd8, 0x000000));
+  atmoMesh.scale.setScalar(1.016);
+  rotatingGroup.add(atmoMesh);
+
+  /* Nuages → directement dans earthGroup (rotation indépendante = nuages dérivants) */
+  cloudsMesh = new THREE.Mesh(sphereGeo, new THREE.MeshStandardMaterial({
+    map:         loader.load(IMG + 'specularClouds.jpg'),
+    transparent: true,
+    opacity:     0.3,
+    blending:    THREE.AdditiveBlending,
+  }));
+  cloudsMesh.scale.setScalar(1.004);
+  earthGroup.add(cloudsMesh);
+
+  /* Étoiles → dans la scène globale */
+  stars = buildStarfield(2500);
+  scene.add(stars);
+
+  /* pinsGroup → ENFANT de rotatingGroup
+     Tourne au même rythme que la surface → les pins collent à la Terre */
+  pinsGroup = new THREE.Group();
+  rotatingGroup.add(pinsGroup);
+
+  /* ── Boucle de rendu ── */
+  animate();
+
+  /* ── Resize ── */
+  window.addEventListener('resize', () => {
+    W = container.offsetWidth;
+    H = container.offsetHeight;
+    camera.aspect = W / H;
+    camera.updateProjectionMatrix();
+    renderer.setSize(W, H);
+  });
+
+  /* ── Masquer le loader après chargement des textures ── */
+  setTimeout(() => document.getElementById('globe-loader').classList.add('hidden'), 2500);
+
+  /* ── Démarrer tous les flux de données ── */
+  initMarkets();   /* Barre marchés : crypto + forex + indices */
+  initTicker();    /* Ticker bas : crypto (dupliqué, scroll infini) */
+  initNews();      /* Sidebar droite : actualités mondiales */
+  switchTheme('meteo'); /* Thème globe initial */
+
+  /* ── Pré-chargement silencieux des compteurs ──
+     Séismes et Vols affichent "—" au démarrage car leurs données viennent
+     d'API externes. On les fetche en arrière-plan après 3s pour afficher
+     de vrais chiffres sans bloquer le rendu principal. */
+  setTimeout(async () => {
+    for (const theme of ['seismes', 'vols']) {
+      try {
+        const data = await fetchThemeData(theme);
+        dataCache[theme] = { ts: Date.now(), data };
+        const el = document.getElementById(`count-${theme}`);
+        if (el) el.textContent = data.length;
+      } catch (_) { /* on garde le "—" si l'API est indisponible */ }
+    }
+  }, 3000);
+}
+
+/* ================================================================
+   RENDER LOOP
+   ================================================================ */
+function animate() {
+  requestAnimationFrame(animate);
+  frame++;
+
+  /* Auto-rotation conditionnelle — désactivable par bouton ou touche R */
+  if (autoRotate) {
+    if (rotatingGroup) rotatingGroup.rotation.y += 0.0013;
+    if (cloudsMesh)    cloudsMesh.rotation.y    += 0.0018;
+  }
+
+  /* Étoiles quasi-fixes */
+  if (stars)         stars.rotation.y         -= 0.00008;
+
+  /* Pulsation des pins */
+  if (pinsGroup && frame % 2 === 0) {
+    pinsGroup.children.forEach(pin => {
+      if (pin.userData.pulse) {
+        const s = 1 + 0.2 * Math.sin(Date.now() * 0.003 + (pin.userData.offset || 0));
+        pin.userData.pulse.scale.setScalar(s);
+      }
+    });
+  }
+
+  /* ISS : mise à jour toutes les ~5s (~300 frames à 60fps) */
+  if (currentTheme === 'iss' && frame % 300 === 0) fetchISS();
+
+  /* Vols : refresh toutes les 30s (~1800 frames) — respecte la limite OpenSky */
+  if (currentTheme === 'vols' && frame % 1800 === 0 && frame > 0) switchTheme('vols', true);
+
+  if (controls)  controls.update();
+  if (renderer && scene && camera) renderer.render(scene, camera);
+}
+
+/* ================================================================
+   COORDINATE HELPER  lat/lon → 3D sphere point
+   ================================================================ */
+function latLonToVec3(lat, lon, r = 1.015) {
+  const phi   = (90 - lat)  * (Math.PI / 180);
+  const theta = (lon + 180) * (Math.PI / 180);
+  /* SphereGeometry UV : azimuth = atan2(z, -x) — lon=0 est en +X
+     → formule standard AVEC signe négatif sur x pour aligner correctement */
+  return new THREE.Vector3(
+    -r * Math.sin(phi) * Math.cos(theta),   /* négatif = correct pour SphereGeometry */
+     r * Math.cos(phi),
+     r * Math.sin(phi) * Math.sin(theta)
+  );
+}
+
+/* ================================================================
+   PIN FACTORIES
+   Trois types de représentations selon le thème :
+   - createMapPin    : épingle carte (sphère + cône) — villes, séismes, ISS, crypto
+   - createSwordPin  : épée — conflits armés
+   - createPlaneIcon : silhouette d'avion orientée par cap — vols
+   ================================================================ */
+
+/**
+ * Helper : calcule la quaternion d'orientation sur la sphère.
+ * Aligne local +Y avec la normale sortante, puis applique le cap (heading).
+ * @param {THREE.Vector3} normal  - Normale normalisée au point lat/lon
+ * @param {number}        heading - Cap en degrés (0=N, 90=E). 0 par défaut.
+ * @returns {THREE.Quaternion}
+ */
+function sphereOrientation(normal, heading = 0) {
+  /* "Nord" local = tangente ascendante sur la sphère
+     Évite la singularité aux pôles avec un vecteur de référence alternatif. */
+  const worldUp  = new THREE.Vector3(0, 1, 0);
+  const ref      = Math.abs(normal.dot(worldUp)) > 0.99
+                   ? new THREE.Vector3(1, 0, 0) : worldUp;
+  const east     = new THREE.Vector3().crossVectors(ref, normal).normalize();
+  const north    = new THREE.Vector3().crossVectors(normal, east).normalize();
+
+  /* Matrice de base : +X=est, +Y=nord, +Z=sortant
+     ShapeGeometry est dans XY et fait face au +Z → s'aligne naturellement. */
+  const q = new THREE.Quaternion().setFromRotationMatrix(
+    new THREE.Matrix4().makeBasis(east, north, normal)
+  );
+
+  /* Rotation de cap autour du +Z monde (= normale) */
+  if (heading !== 0) {
+    const qH = new THREE.Quaternion().setFromAxisAngle(normal, -heading * Math.PI / 180);
+    q.premultiply(qH);
+  }
+  return q;
+}
+
+/* ── Épingle carte — villes, séismes, crypto, ISS ─────────────────
+   Sphère au sommet + cône pointant vers la surface, halo pulsant.   */
+function createMapPin({ lat, lon, color = 0x67e8f9, size = 1, data = {} }) {
+  const pos    = latLonToVec3(lat, lon, 1.018);
+  const normal = pos.clone().normalize();
+  const q      = sphereOrientation(normal); /* pas de cap sur une ville */
+
+  const group = new THREE.Group();
+  group.userData = { lat, lon, ...data };
+  group.position.copy(pos);
+  group.quaternion.copy(q);
+
+  const r = 0.012 * size;
+
+  /* Tête sphérique — pointe vers l'extérieur (+Y local = nord = vers le ciel) */
+  const head = new THREE.Mesh(
+    new THREE.SphereGeometry(r, 8, 8),
+    new THREE.MeshBasicMaterial({ color })
+  );
+  head.position.set(0, r * 1.4, 0);
+  group.add(head);
+
+  /* Corps conique pointant vers la surface (-Y local) */
+  const cone = new THREE.Mesh(
+    new THREE.ConeGeometry(r * 0.45, r * 1.9, 7),
+    new THREE.MeshBasicMaterial({ color })
+  );
+  cone.position.set(0, -r * 0.1, 0);
+  cone.rotation.x = Math.PI; /* renverse le cône pour qu'il pointe dans -Y */
+  group.add(cone);
+
+  /* Halo pulsant autour de la tête */
+  const pulse = new THREE.Mesh(
+    new THREE.SphereGeometry(r * 2, 8, 8),
+    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.14 })
+  );
+  pulse.position.copy(head.position);
+  group.add(pulse);
+  group.userData.pulse  = pulse;
+  group.userData.offset = Math.random() * Math.PI * 2;
+
+  return group;
+}
+
+/* ── Épées croisées — conflits armés ────────────────────────────────
+   Deux épées formant un X (⚔), orientées perpendiculairement à la surface.
+   Dans l'espace local du groupe (issu de sphereOrientation) :
+     X → est, Y → nord, Z → normal sortant
+   On fait tourner chaque épée ±45° autour de Z pour former la croix. */
+function createSwordPin({ lat, lon, color = 0xf87171, data = {} }) {
+  const pos    = latLonToVec3(lat, lon, 1.018);
+  const normal = pos.clone().normalize();
+  const q      = sphereOrientation(normal);
+
+  const group = new THREE.Group();
+  group.userData = { lat, lon, ...data };
+  group.position.copy(pos);
+  group.quaternion.copy(q);
+
+  const mat     = new THREE.MeshBasicMaterial({ color });
+  const matDark = new THREE.MeshBasicMaterial({ color: 0x6b3a3a });
+
+  /* Fabrique une épée simple dans le plan local XY */
+  function makeSword() {
+    const sword = new THREE.Group();
+
+    /* Lame — fine et longue, pointe vers +Y */
+    const blade = new THREE.Mesh(new THREE.BoxGeometry(0.003, 0.032, 0.001), mat);
+    blade.position.set(0, 0.014, 0);
+    sword.add(blade);
+
+    /* Pointe en cône */
+    const tip = new THREE.Mesh(new THREE.ConeGeometry(0.002, 0.008, 5), mat);
+    tip.position.set(0, 0.034, 0);
+    sword.add(tip);
+
+    /* Garde horizontale (perpendiculaire à la lame) */
+    const guard = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.003, 0.001), mat);
+    guard.position.set(0, 0.001, 0);
+    sword.add(guard);
+
+    /* Poignée */
+    const handle = new THREE.Mesh(new THREE.BoxGeometry(0.004, 0.012, 0.001), matDark);
+    handle.position.set(0, -0.007, 0);
+    sword.add(handle);
+
+    /* Pommeau */
+    const pommel = new THREE.Mesh(new THREE.SphereGeometry(0.004, 6, 5), matDark);
+    pommel.position.set(0, -0.015, 0);
+    sword.add(pommel);
+
+    return sword;
+  }
+
+  /* Épée 1 : inclinée +45° → bascule vers la droite */
+  const sword1 = makeSword();
+  sword1.rotation.z = Math.PI / 4;
+  group.add(sword1);
+
+  /* Épée 2 : inclinée −45° → bascule vers la gauche → forme un X avec la première */
+  const sword2 = makeSword();
+  sword2.rotation.z = -Math.PI / 4;
+  group.add(sword2);
+
+  /* Halo rouge pulsant au centre des épées croisées */
+  const pulse = new THREE.Mesh(
+    new THREE.SphereGeometry(0.022, 8, 8),
+    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.10 })
+  );
+  group.add(pulse);
+  group.userData.pulse  = pulse;
+  group.userData.offset = Math.random() * Math.PI * 2;
+
+  return group;
+}
+
+/* ── Silhouette d'avion ────────────────────────────────────────────
+   ShapeGeometry précise style FlightAware : fuselage fin, ailes delta
+   balayées, empennage avec stabilisateurs horizontaux.
+   Dimensions : ~0.018 u d'envergure, ~0.022 u de long (≈ 3-4 px sur globe).
+   Le nez pointe en +Y (cap), ailes en ±X, face +Z vers l'extérieur. */
+const _planeShape = (() => {
+  const s = new THREE.Shape();
+
+  /* Vue de dessus, nez pointant en +Y.
+     Proportions réalistes vue du dessus d'un avion de ligne :
+     - Fuselage très fin (±0.0015)
+     - Ailes larges (±0.014) avec balayage ~25°
+     - Stabilisateurs clairement plus petits (±0.005, ratio 36%)
+     Total : envergure 0.028 · longueur 0.030 */
+
+  s.moveTo( 0,       0.015);   /* nez */
+
+  /* ── aile droite ── */
+  s.lineTo( 0.0015,  0.007);   /* racine aile D (fuselage étroit) */
+  s.lineTo( 0.014,   0.002);   /* bout aile D — large, balayée */
+  s.lineTo( 0.009,  -0.004);   /* bord de fuite aile D */
+  s.lineTo( 0.0015, -0.003);   /* retour fuselage D */
+
+  /* ── fuselage → empennage droit ── */
+  s.lineTo( 0.0015, -0.010);
+  s.lineTo( 0.005,  -0.012);   /* bout stab D — nettement plus petit que l'aile */
+  s.lineTo( 0.002,  -0.015);   /* bord de fuite stab D */
+
+  s.lineTo( 0,      -0.014);   /* pointe queue */
+
+  /* ── symétrie gauche ── */
+  s.lineTo(-0.002,  -0.015);
+  s.lineTo(-0.005,  -0.012);
+  s.lineTo(-0.0015, -0.010);
+  s.lineTo(-0.0015, -0.003);
+  s.lineTo(-0.009,  -0.004);
+  s.lineTo(-0.014,   0.002);
+  s.lineTo(-0.0015,  0.007);
+
+  s.closePath();
+  return new THREE.ShapeGeometry(s);
+})();
+
+/* Un seul matériau partagé — couleur orange chaude style FlightAware,
+   opaque pour être net contre la texture terrestre */
+const _planeMat = new THREE.MeshBasicMaterial({ color: 0xfb923c, side: THREE.DoubleSide });
+
+/* Alias pour la compatibilité avec clearPins() qui vérifie _planeMats */
+const _planeMats = { low: _planeMat, mid: _planeMat, high: _planeMat };
+
+function createPlaneIcon(flight) {
+  const pos    = latLonToVec3(flight.lat, flight.lon, 1.014);
+  const normal = pos.clone().normalize();
+
+  const group = new THREE.Group();
+  group.userData = { lat: flight.lat, lon: flight.lon, _theme: 'vols', ...flight };
+  group.position.copy(pos);
+  group.quaternion.copy(sphereOrientation(normal, flight.heading ?? 0));
+
+  /* Silhouette centrée à l'origine locale — face +Z vers l'extérieur du globe */
+  group.add(new THREE.Mesh(_planeShape, _planeMat));
+
+  return group;
+}
+
+/* Ancien createPin conservé pour les thèmes non migrés (ISS) */
+function createPin({ lat, lon, color = 0xf9a8c9, size = 0.018, data = {} }) {
+  return createMapPin({ lat, lon, color, size: size / 0.012, data });
+}
+
+/* ── Clear all pins ──
+   Les géométries/matériaux PARTAGÉS (_planeShape, _planeMats) ne sont
+   jamais disposés ici — ils persistent pour être réutilisés. */
+function clearPins() {
+  if (!pinsGroup) return;
+  while (pinsGroup.children.length) {
+    const child = pinsGroup.children[0];
+    child.traverse(o => {
+      if (!o.isMesh) return;
+      /* Ne pas disposer la géométrie/matériau partagé des avions */
+      if (o.geometry !== _planeShape) o.geometry.dispose();
+      if (!Object.values(_planeMats).includes(o.material)) o.material.dispose();
+    });
+    pinsGroup.remove(child);
+  }
+}
+
+/* ================================================================
+   THEME ENGINE
+   ================================================================ */
+let currentTheme = 'meteo';
+let dataCache     = {};
+
+/* ── Sélecteur de thème commun aux deux navs (desktop sidebar + mobile bar) ── */
+function handleThemeClick(e, btnSelector) {
+  const btn = e.target.closest(btnSelector);
+  if (!btn) return;
+  const theme = btn.dataset.theme;
+  if (theme === currentTheme) return;
+
+  /* Sync active state sur les DEUX barres */
+  document.querySelectorAll('.theme-btn, .mob-theme-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll(`[data-theme="${theme}"]`).forEach(b => b.classList.add('active'));
+  currentTheme = theme;
+
+  showEmptyInfo();
+  switchTheme(theme);
+}
+
+document.getElementById('theme-nav').addEventListener('click', e => handleThemeClick(e, '.theme-btn'));
+document.getElementById('mobile-theme-nav').addEventListener('click', e => handleThemeClick(e, '.mob-theme-btn'));
+
+function setLoading(theme, on) {
+  const btn = document.querySelector(`[data-theme="${theme}"]`);
+  btn?.classList.toggle('loading', on);
+}
+
+/**
+ * Charge et affiche un thème sur le globe.
+ * @param {string}  theme  - Identifiant du thème
+ * @param {boolean} silent - Si true : ignore le cache (refresh forcé), ne met pas à jour l'UI du bouton
+ */
+async function switchTheme(theme, silent = false) {
+  clearPins();
+  updateLegend(theme);
+
+  /* Les vols ont une durée de cache plus courte (30s) car ils bougent */
+  const cacheTTL = theme === 'vols' ? 25_000 : 300_000;
+
+  /* Utiliser le cache si encore frais ET pas de refresh forcé */
+  const cached = dataCache[theme];
+  const now    = Date.now();
+  if (!silent && cached && now - cached.ts < cacheTTL) {
+    renderPins(theme, cached.data);
+    return;
+  }
+
+  if (!silent) setLoading(theme, true);
+  try {
+    const data = await fetchThemeData(theme);
+    dataCache[theme] = { ts: now, data };
+    renderPins(theme, data);
+  } catch (err) {
+    console.warn(`Erreur thème ${theme}:`, err);
+  }
+  if (!silent) setLoading(theme, false);
+}
+
+/* ================================================================
+   DATA SOURCES
+   ================================================================ */
+
+/* ─── CITIES — capitales et grandes métropoles mondiales ─── */
+const CITIES = [
+  /* Europe */
+  { name: 'Paris',         lat:  48.85,  lon:   2.35,  country: 'France',       pop:  2_161_000 },
+  { name: 'Londres',       lat:  51.51,  lon:  -0.12,  country: 'Royaume-Uni',  pop:  9_002_000 },
+  { name: 'Berlin',        lat:  52.52,  lon:  13.40,  country: 'Allemagne',    pop:  3_769_000 },
+  { name: 'Madrid',        lat:  40.42,  lon:  -3.70,  country: 'Espagne',      pop:  3_223_000 },
+  { name: 'Rome',          lat:  41.90,  lon:  12.49,  country: 'Italie',       pop:  2_873_000 },
+  { name: 'Amsterdam',     lat:  52.37,  lon:   4.90,  country: 'Pays-Bas',     pop:    873_000 },
+  { name: 'Vienne',        lat:  48.21,  lon:  16.37,  country: 'Autriche',     pop:  1_897_000 },
+  { name: 'Varsovie',      lat:  52.23,  lon:  21.01,  country: 'Pologne',      pop:  1_794_000 },
+  { name: 'Stockholm',     lat:  59.33,  lon:  18.07,  country: 'Suède',        pop:    975_000 },
+  { name: 'Oslo',          lat:  59.91,  lon:  10.75,  country: 'Norvège',      pop:    693_000 },
+  { name: 'Copenhague',    lat:  55.68,  lon:  12.57,  country: 'Danemark',     pop:    794_000 },
+  { name: 'Lisbonne',      lat:  38.72,  lon:  -9.14,  country: 'Portugal',     pop:    545_000 },
+  { name: 'Athènes',       lat:  37.98,  lon:  23.73,  country: 'Grèce',        pop:    664_000 },
+  { name: 'Budapest',      lat:  47.50,  lon:  19.04,  country: 'Hongrie',      pop:  1_752_000 },
+  { name: 'Prague',        lat:  50.08,  lon:  14.44,  country: 'Tchéquie',     pop:  1_309_000 },
+  { name: 'Bucarest',      lat:  44.43,  lon:  26.10,  country: 'Roumanie',     pop:  1_877_000 },
+  { name: 'Kiev',          lat:  50.45,  lon:  30.52,  country: 'Ukraine',      pop:  2_967_000 },
+  { name: 'Moscou',        lat:  55.75,  lon:  37.62,  country: 'Russie',       pop: 12_506_000 },
+  /* Amériques */
+  { name: 'New York',      lat:  40.71,  lon: -74.01,  country: 'USA',          pop:  8_336_000 },
+  { name: 'Washington DC', lat:  38.91,  lon: -77.04,  country: 'USA',          pop:    689_000 },
+  { name: 'Los Angeles',   lat:  34.05,  lon: -118.24, country: 'USA',          pop:  3_979_000 },
+  { name: 'Toronto',       lat:  43.65,  lon: -79.38,  country: 'Canada',       pop:  2_794_000 },
+  { name: 'Ottawa',        lat:  45.42,  lon: -75.69,  country: 'Canada',       pop:    994_000 },
+  { name: 'Mexico',        lat:  19.43,  lon: -99.13,  country: 'Mexique',      pop: 21_671_000 },
+  { name: 'La Havane',     lat:  23.13,  lon: -82.38,  country: 'Cuba',         pop:  2_130_000 },
+  { name: 'Bogotá',        lat:   4.71,  lon: -74.07,  country: 'Colombie',     pop:  7_413_000 },
+  { name: 'Lima',          lat: -12.05,  lon: -77.04,  country: 'Pérou',        pop: 10_883_000 },
+  { name: 'Santiago',      lat: -33.45,  lon: -70.67,  country: 'Chili',        pop:  6_257_000 },
+  { name: 'São Paulo',     lat: -23.55,  lon: -46.63,  country: 'Brésil',       pop: 12_333_000 },
+  { name: 'Buenos Aires',  lat: -34.60,  lon: -58.38,  country: 'Argentine',    pop:  3_075_000 },
+  /* Asie */
+  { name: 'Tokyo',         lat:  35.68,  lon: 139.69,  country: 'Japon',        pop: 13_960_000 },
+  { name: 'Séoul',         lat:  37.57,  lon: 126.98,  country: 'Corée du Sud', pop:  9_776_000 },
+  { name: 'Pékin',         lat:  39.91,  lon: 116.39,  country: 'Chine',        pop: 21_542_000 },
+  { name: 'Shanghai',      lat:  31.23,  lon: 121.47,  country: 'Chine',        pop: 24_281_000 },
+  { name: 'New Delhi',     lat:  28.61,  lon:  77.21,  country: 'Inde',         pop: 32_941_000 },
+  { name: 'Mumbai',        lat:  19.08,  lon:  72.88,  country: 'Inde',         pop: 20_667_000 },
+  { name: 'Bangkok',       lat:  13.75,  lon: 100.52,  country: 'Thaïlande',    pop: 10_539_000 },
+  { name: 'Jakarta',       lat:  -6.21,  lon: 106.85,  country: 'Indonésie',    pop: 10_770_000 },
+  { name: 'Singapour',     lat:   1.35,  lon: 103.82,  country: 'Singapour',    pop:  5_850_000 },
+  { name: 'Manille',       lat:  14.60,  lon: 120.98,  country: 'Philippines',  pop: 13_923_000 },
+  { name: 'Kuala Lumpur',  lat:   3.15,  lon: 101.69,  country: 'Malaisie',     pop:  1_982_000 },
+  { name: 'Karachi',       lat:  24.86,  lon:  67.01,  country: 'Pakistan',     pop: 14_910_000 },
+  { name: 'Téhéran',       lat:  35.69,  lon:  51.42,  country: 'Iran',         pop:  9_259_000 },
+  { name: 'Bagdad',        lat:  33.34,  lon:  44.40,  country: 'Irak',         pop:  8_765_000 },
+  { name: 'Riyad',         lat:  24.69,  lon:  46.72,  country: 'Arabie Saoudite', pop: 7_676_000 },
+  { name: 'Dubai',         lat:  25.20,  lon:  55.27,  country: 'Émirats',      pop:  3_331_000 },
+  { name: 'Istanbul',      lat:  41.01,  lon:  28.95,  country: 'Turquie',      pop: 15_462_000 },
+  /* Afrique */
+  { name: 'Le Caire',      lat:  30.04,  lon:  31.24,  country: 'Égypte',       pop: 21_323_000 },
+  { name: 'Lagos',         lat:   6.52,  lon:   3.38,  country: 'Nigéria',      pop: 15_388_000 },
+  { name: 'Kinshasa',      lat:  -4.32,  lon:  15.32,  country: 'RD Congo',     pop: 17_071_000 },
+  { name: 'Nairobi',       lat:  -1.29,  lon:  36.82,  country: 'Kenya',        pop:  4_922_000 },
+  { name: 'Johannesburg',  lat: -26.20,  lon:  28.04,  country: 'Afrique du S', pop:  5_635_000 },
+  { name: 'Addis-Abeba',   lat:   9.03,  lon:  38.74,  country: 'Éthiopie',     pop:  3_352_000 },
+  { name: 'Accra',         lat:   5.56,  lon:  -0.20,  country: 'Ghana',        pop:  2_514_000 },
+  /* Océanie */
+  { name: 'Sydney',        lat: -33.87,  lon: 151.21,  country: 'Australie',    pop:  5_312_000 },
+  { name: 'Melbourne',     lat: -37.81,  lon: 144.96,  country: 'Australie',    pop:  5_078_000 },
+  { name: 'Auckland',      lat: -36.87,  lon: 174.76,  country: 'Nouvelle-Zélande', pop: 1_695_000 },
+];
+
+/* ─── CONFLICT ZONES (mis à jour mars 2025) ─── */
+const CONFLICTS = [
+  /* ── Guerres actives ── */
+  { name: 'Ukraine',           lat: 48.5,  lon:  31.0,  intensity: 'high',   type: 'Guerre',            desc: 'Invasion russe — front stabilisé à l\'est, frappes de missiles sur les villes.' },
+  { name: 'Gaza / Israël',     lat: 31.5,  lon:  34.5,  intensity: 'high',   type: 'Guerre',            desc: 'Offensive israélienne à Gaza — cessez-le-feu fragile en cours (janv. 2025).' },
+  { name: 'Soudan',            lat: 15.5,  lon:  32.5,  intensity: 'high',   type: 'Guerre civile',     desc: 'Guerre entre les FAR et les Forces de soutien rapide — crise humanitaire majeure.' },
+  { name: 'Yémen',             lat: 15.5,  lon:  48.5,  intensity: 'high',   type: 'Guerre civile',     desc: 'Houthis actifs — attaques en mer Rouge perturbant le commerce mondial.' },
+  { name: 'RDC / Est Congo',   lat: -1.5,  lon:  29.0,  intensity: 'high',   type: 'Guerre',            desc: 'Offensive du M23/Rwanda — chute de Goma en janvier 2025.' },
+
+  /* ── Tensions critiques 2025 ── */
+  { name: 'Iran',              lat: 32.0,  lon:  53.0,  intensity: 'high',   type: 'Tensions régionales', desc: 'Frappes israéliennes sur défenses iraniennes (oct. 2024) — programme nucléaire en crise.' },
+  { name: 'Liban',             lat: 33.9,  lon:  35.5,  intensity: 'high',   type: 'Post-conflit',      desc: 'Cessez-le-feu Israël-Hezbollah (nov. 2024) — reconstruction sous haute tension.' },
+  { name: 'Détroit de Taïwan', lat: 23.7,  lon: 120.9,  intensity: 'medium', type: 'Tensions militaires', desc: 'Manœuvres militaires chinoises récurrentes autour de Taïwan — risque d\'escalade.' },
+  { name: 'Mer de Chine du Sud', lat: 12.0, lon: 114.0, intensity: 'medium', type: 'Tensions territoriales', desc: 'Incidents répétés entre la Chine et les Philippines autour des îles Spratleys.' },
+
+  /* ── Conflits persistants ── */
+  { name: 'Myanmar',           lat: 19.7,  lon:  96.1,  intensity: 'medium', type: 'Guerre civile',     desc: 'Résistance armée contre la junte militaire — territoires sous contrôle rebelle.' },
+  { name: 'Syrie',             lat: 34.8,  lon:  38.9,  intensity: 'medium', type: 'Post-conflit',      desc: 'Chute d\'Assad (déc. 2024) — transition politique incertaine, HTS au pouvoir.' },
+  { name: 'Mali / Sahel',      lat: 14.0,  lon:  -2.0,  intensity: 'medium', type: 'Insurrection',      desc: 'Groupes djihadistes (JNIM, EIGS) — départ des forces françaises et Wagner.' },
+  { name: 'Soudan du Sud',     lat:  6.9,  lon:  31.3,  intensity: 'medium', type: 'Instabilité',       desc: 'Tensions intercommunautaires et risque de retour à la guerre civile.' },
+  { name: 'Éthiopie',          lat:  9.1,  lon:  40.5,  intensity: 'medium', type: 'Tensions',          desc: 'Conflits Amhara, Oromo et tensions à la frontière somalienne.' },
+  { name: 'Haïti',             lat: 18.9,  lon: -72.3,  intensity: 'medium', type: 'Crise sécuritaire', desc: 'Gangs armés contrôlant 80 % de Port-au-Prince — mission kényane déployée.' },
+  { name: 'Mexique (Cartels)', lat: 25.0,  lon:-104.0,  intensity: 'medium', type: 'Criminalité org.',  desc: 'Guerre des cartels — Sinaloa, CJNG — milliers de morts par an.' },
+  { name: 'Libye',             lat: 26.3,  lon:  17.2,  intensity: 'low',    type: 'Instabilité',       desc: 'Gouvernement divisé, milices armées et influence russe (Wagner) persistante.' },
+  { name: 'Corée du Nord',     lat: 39.0,  lon: 127.5,  intensity: 'low',    type: 'Tensions nucléaires', desc: 'Troupes envoyées en Russie (oct. 2024) — programme missile/nucléaire actif.' },
+];
+
+/* ─── CRYPTO EXCHANGE HUBS ─── */
+const CRYPTO_HUBS = [
+  { name: 'New York',    lat: 40.71,  lon: -74.01, sym: 'NYSE',    market: 'Actions US'      },
+  { name: 'Londres',     lat: 51.51,  lon:  -0.12, sym: 'LSE',     market: 'Bourse de Londres' },
+  { name: 'Tokyo',       lat: 35.68,  lon: 139.69, sym: 'TSE',     market: 'Bourse de Tokyo'   },
+  { name: 'Hong Kong',   lat: 22.32,  lon: 114.17, sym: 'HKEX',    market: 'Bourse HK'         },
+  { name: 'Francfort',   lat: 50.11,  lon:   8.68, sym: 'XETRA',   market: 'Deutsche Börse'    },
+  { name: 'Shanghai',    lat: 31.23,  lon: 121.47, sym: 'SSE',     market: 'Bourse Shanghai'   },
+  { name: 'Paris',       lat: 48.85,  lon:   2.35, sym: 'EURONEXT',market: 'Euronext Paris'    },
+  { name: 'São Paulo',   lat: -23.55, lon: -46.63, sym: 'B3',      market: 'Bourse Brésil'     },
+  { name: 'Dubaï',       lat: 25.20,  lon:  55.27, sym: 'DFM',     market: 'Bourse Dubaï'      },
+  { name: 'Toronto',     lat: 43.65,  lon: -79.38, sym: 'TSX',     market: 'Bourse Canada'     },
+  { name: 'Sydney',      lat: -33.87, lon: 151.21, sym: 'ASX',     market: 'Bourse Australie'  },
+  { name: 'Singapour',   lat:  1.35,  lon: 103.82, sym: 'SGX',     market: 'Bourse Singapour'  },
+];
+
+/* ─── WEATHER CODE → text + emoji ─── */
+function wmoLabel(code) {
+  if (code === 0)              return '☀️ Ciel dégagé';
+  if (code <= 2)               return '🌤 Partiellement nuageux';
+  if (code <= 3)               return '☁️ Couvert';
+  if (code <= 49)              return '🌫 Brouillard';
+  if (code <= 69)              return '🌧 Pluie';
+  if (code <= 79)              return '❄️ Neige';
+  if (code <= 82)              return '🌦 Averses';
+  return '⛈ Orage';
+}
+
+/* ================================================================
+   FETCH FUNCTIONS PER THEME
+   ================================================================ */
+async function fetchThemeData(theme) {
+  switch (theme) {
+    case 'meteo':      return fetchWeather();
+    case 'seismes':    return fetchEarthquakes();
+    case 'conflits':   return CONFLICTS; /* static curated */
+    case 'crypto':     return fetchCrypto();
+    case 'iss':        return fetchISS();
+    case 'population': return CITIES;
+    case 'vols':       return fetchFlights();
+    default:           return [];
+  }
+}
+
+/* ── MÉTÉO : Open-Meteo (free, no API key) ── */
+async function fetchWeather() {
+  const lats = CITIES.map(c => c.lat).join(',');
+  const lons = CITIES.map(c => c.lon).join(',');
+  const url  = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&current=temperature_2m,weather_code,wind_speed_10m&timezone=auto`;
+
+  const res  = await fetch(url);
+  const json = await res.json();
+
+  /* API returns array when multiple locations */
+  const results = Array.isArray(json) ? json : [json];
+
+  return CITIES.map((city, i) => {
+    const curr = results[i]?.current ?? {};
+    return {
+      ...city,
+      temp:   curr.temperature_2m ?? '—',
+      code:   curr.weather_code   ?? 0,
+      wind:   curr.wind_speed_10m ?? '—',
+    };
+  });
+}
+
+/* ── SÉISMES : USGS significant earthquakes (last week) ── */
+async function fetchEarthquakes() {
+  const url  = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson';
+  const res  = await fetch(url);
+  const json = await res.json();
+
+  return json.features.slice(0, 40).map(f => ({
+    name: f.properties.place,
+    lat:  f.geometry.coordinates[1],
+    lon:  f.geometry.coordinates[0],
+    mag:  f.properties.mag,
+    time: new Date(f.properties.time).toLocaleDateString('fr-FR'),
+    depth: f.geometry.coordinates[2],
+    url:  f.properties.url,
+  }));
+}
+
+/* ── CRYPTO : CoinGecko (free, no API key, CORS ok) ── */
+async function fetchCrypto() {
+  const ids = 'bitcoin,ethereum,solana,binancecoin,cardano,ripple,dogecoin,polkadot,chainlink,avalanche-2,matic-network,uniswap';
+  const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`;
+  const res  = await fetch(url);
+  const json = await res.json();
+
+  /* Map to crypto hub cities */
+  const symbols = ['BTC','ETH','SOL','BNB','ADA','XRP','DOGE','DOT','LINK','AVAX','MATIC','UNI'];
+  const keys    = Object.keys(json);
+
+  return CRYPTO_HUBS.map((hub, i) => ({
+    ...hub,
+    price:  json[keys[i]]?.usd ?? '—',
+    change: json[keys[i]]?.usd_24h_change ?? 0,
+    symbol: symbols[i] ?? '?',
+  }));
+}
+
+/* ── ISS : Where The ISS At (free, CORS ok) ── */
+let issPin = null;
+async function fetchISS() {
+  const res  = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
+  const json = await res.json();
+  const { latitude: lat, longitude: lon, velocity, altitude } = json;
+
+  /* L'ISS est en orbite géostationnaire INDÉPENDANTE de la rotation terrestre.
+     Les pins sont dans rotatingGroup (qui tourne avec la Terre).
+     On corrige la longitude en soustrayant la rotation de rotatingGroup
+     pour que le pin apparaisse au bon endroit apparent dans l'espace. */
+  const earthRotDeg = rotatingGroup
+    ? ((rotatingGroup.rotation.y * 180 / Math.PI) % 360)
+    : 0;
+  const localLon = lon - earthRotDeg;
+
+  if (currentTheme === 'iss' && issPin) {
+    const newPos = latLonToVec3(lat, localLon);
+    issPin.children.forEach(c => c.position.copy(newPos));
+    issPin.userData = {
+      ...issPin.userData,
+      lat, lon,
+      velocity: Math.round(velocity),
+      altitude: Math.round(altitude),
+    };
+  }
+
+  return [{ name: 'ISS', lat, lon, localLon, velocity: Math.round(velocity), altitude: Math.round(altitude) }];
+}
+
+/* ================================================================
+   VOLS EN DIRECT — OpenSky Network (gratuit, sans clé, CORS ok)
+   https://opensky-network.org/api/states/all
+   Format état : [icao24, callsign, origin_country, time_pos, last_contact,
+                   lon, lat, baro_alt, on_ground, velocity, true_track, ...]
+   ================================================================ */
+async function fetchFlights() {
+  /* ── Tentative OpenSky Network (gratuit, sans clé) ── */
+  try {
+    const res  = await fetch(
+      'https://opensky-network.org/api/states/all',
+      { signal: AbortSignal.timeout(12_000) }
+    );
+    if (!res.ok) throw new Error(`OpenSky HTTP ${res.status}`);
+    const json = await res.json();
+
+    if (json?.states?.length) {
+      /* Filtrer : en vol + coordonnées valides
+         on_ground peut être false (booléen) OU 0 (entier) selon la version API */
+      const inFlight = json.states.filter(s =>
+        !s[8]            /* on_ground falsy = en vol */
+        && s[5] != null  /* longitude */
+        && s[6] != null  /* latitude */
+      );
+
+      /* Échantillonner aléatoirement — max 600 pour les performances */
+      const MAX = 600;
+      const sampled = inFlight.length > MAX
+        ? inFlight.sort(() => Math.random() - 0.5).slice(0, MAX)
+        : inFlight;
+
+      if (sampled.length > 0) {
+        return sampled.map(s => ({
+          name:     s[1]?.trim() || s[0] || 'Vol inconnu',
+          lat:      s[6],
+          lon:      s[5],
+          icao24:   s[0] ?? '',
+          callsign: s[1]?.trim() ?? '',
+          country:  s[2] ?? '',
+          alt_m:    s[7] ?? 8000,
+          vel_ms:   s[9] ?? 250,
+          heading:  s[10] ?? 0,
+        }));
+      }
+    }
+  } catch (err) {
+    console.warn('OpenSky indisponible, utilisation des vols simulés :', err.message);
+  }
+
+  /* ── Fallback : vols simulés sur les routes majeures ──
+     Génère ~400 avions sur les corridors aériens réels
+     pour garantir un affichage même si l'API est rate-limitée. */
+  return _generateSimulatedFlights();
+}
+
+/* Génère des vols simulés répartis sur les grandes routes aériennes mondiales */
+function _generateSimulatedFlights() {
+  /* Routes majeures : [lat départ, lon départ, lat arrivée, lon arrivée, label] */
+  const ROUTES = [
+    /* Transatlantique */
+    [ 51.5, -0.1,   40.7, -74.0, 'LHR-JFK'],
+    [ 48.9,  2.4,   40.7, -74.0, 'CDG-JFK'],
+    [ 52.4, 13.5,   40.7, -74.0, 'BER-JFK'],
+    [ 60.3, 24.9,   40.7, -74.0, 'HEL-JFK'],
+    [ 59.9, 10.6,   40.7, -74.0, 'OSL-JFK'],
+    /* Europe–Asie */
+    [ 51.5, -0.1,   35.7, 139.7, 'LHR-NRT'],
+    [ 48.9,  2.4,   22.3, 114.2, 'CDG-HKG'],
+    [ 52.4, 13.5,    1.4, 103.8, 'BER-SIN'],
+    [ 55.8, 37.6,   35.7, 139.7, 'SVO-NRT'],
+    /* Pacifique */
+    [ 37.6,-122.4,  35.7, 139.7, 'SFO-NRT'],
+    [ 33.9,-118.4,  22.3, 114.2, 'LAX-HKG'],
+    [ 47.5,-122.3,   1.4, 103.8, 'SEA-SIN'],
+    /* Intérieur USA */
+    [ 40.7, -74.0,  33.9,-118.4, 'JFK-LAX'],
+    [ 41.9, -87.9,  33.9,-118.4, 'ORD-LAX'],
+    [ 25.8, -80.3,  40.7, -74.0, 'MIA-JFK'],
+    /* Amérique du Sud */
+    [ 40.7, -74.0,  -23.4, -46.5,'JFK-GRU'],
+    [ 48.9,  2.4,   -34.8, -58.5,'CDG-EZE'],
+    /* Afrique */
+    [ 51.5, -0.1,   -1.3,  36.9, 'LHR-NBO'],
+    [ 48.9,  2.4,    5.6,  -0.2, 'CDG-ACC'],
+    /* Moyen-Orient */
+    [ 51.5, -0.1,   25.3,  55.4, 'LHR-DXB'],
+    [ 48.9,  2.4,   24.9,  67.2, 'CDG-KHI'],
+    /* Asie–Pacifique */
+    [ 35.7, 139.7,  -33.9, 151.2,'NRT-SYD'],
+    [ 22.3, 114.2,  -33.9, 151.2,'HKG-SYD'],
+    [  1.4, 103.8,  -37.7, 144.8,'SIN-MEL'],
+  ];
+
+  const flights = [];
+  ROUTES.forEach((r, ri) => {
+    const [lat1, lon1, lat2, lon2, label] = r;
+    const COUNT = 16; /* avions par route */
+    for (let i = 0; i < COUNT; i++) {
+      const t = (i + Math.random() * 0.8) / COUNT; /* progression 0→1 */
+      const lat = lat1 + (lat2 - lat1) * t;
+      const lon = lon1 + (lon2 - lon1) * t;
+      /* Cap approximatif (atan2 lat/lon — assez précis pour l'affichage) */
+      const dLat = lat2 - lat1, dLon = lon2 - lon1;
+      const heading = (Math.atan2(dLon, dLat) * 180 / Math.PI + 360) % 360;
+      flights.push({
+        name:     `${label}-${ri * 100 + i}`,
+        lat, lon,
+        icao24:   '',
+        callsign: label,
+        country:  '',
+        alt_m:    9000 + Math.random() * 3000,
+        vel_ms:   230 + Math.random() * 60,
+        heading,
+        simulated: true,
+      });
+    }
+  });
+  return flights;
+}
+
+/* ================================================================
+   PIN RENDERING PER THEME
+   ================================================================ */
+function renderPins(theme, data) {
+  clearPins();
+  document.getElementById(`count-${theme}`).textContent = data.length;
+
+  switch (theme) {
+
+    case 'meteo':
+      /* Épingle carte cyan pour chaque capitale/grande ville */
+      data.forEach(city => {
+        const pin = createMapPin({
+          lat: city.lat, lon: city.lon,
+          color: 0x67e8f9, size: 1,
+          data: { _theme: 'meteo', ...city },
+        });
+        pinsGroup.add(pin);
+      });
+      break;
+
+    case 'seismes':
+      /* Épingle carte — taille et couleur selon la magnitude */
+      data.forEach(eq => {
+        const size  = Math.max(0.7, (eq.mag - 4) * 0.6);
+        const color = eq.mag >= 7 ? 0xff4444 : eq.mag >= 6 ? 0xff8c00 : 0xfbbf24;
+        const pin = createMapPin({
+          lat: eq.lat, lon: eq.lon,
+          color, size,
+          data: { _theme: 'seismes', ...eq },
+        });
+        pinsGroup.add(pin);
+      });
+      break;
+
+    case 'conflits':
+      /* Épée pour chaque zone de conflit */
+      data.forEach(c => {
+        const color = c.intensity === 'high' ? 0xf87171 : c.intensity === 'medium' ? 0xfbbf24 : 0xa3e635;
+        const pin = createSwordPin({
+          lat: c.lat, lon: c.lon,
+          color,
+          data: { _theme: 'conflits', ...c },
+        });
+        pinsGroup.add(pin);
+      });
+      break;
+
+    case 'crypto':
+      /* Épingle carte verte/rouge selon variation 24h */
+      data.forEach(hub => {
+        const color = hub.change >= 0 ? 0x4ade80 : 0xf87171;
+        const pin = createMapPin({
+          lat: hub.lat, lon: hub.lon,
+          color, size: 1.1,
+          data: { _theme: 'crypto', ...hub },
+        });
+        pinsGroup.add(pin);
+      });
+      break;
+
+    case 'iss':
+      /* Épingle violette pour l'ISS */
+      data.forEach(d => {
+        const pin = createMapPin({
+          lat: d.lat, lon: d.localLon ?? d.lon,
+          color: 0xc084fc, size: 1.6,
+          data: { _theme: 'iss', ...d },
+        });
+        issPin = pin;
+        pinsGroup.add(pin);
+      });
+      break;
+
+    case 'population': {
+      /* Épingle taille proportionnelle à la population */
+      const maxPop = Math.max(...data.map(c => c.pop));
+      data.forEach(city => {
+        const t     = city.pop / maxPop;
+        const size  = 0.6 + t * 2.0;
+        const color = t > 0.7 ? 0xf9a8c9 : t > 0.4 ? 0xf97316 : 0x67e8f9;
+        const pin = createMapPin({
+          lat: city.lat, lon: city.lon,
+          color, size,
+          data: { _theme: 'population', ...city },
+        });
+        pinsGroup.add(pin);
+      });
+      break;
+    }
+
+    case 'vols':
+      /* Silhouette d'avion orientée par le cap */
+      data.forEach(flight => {
+        const pin = createPlaneIcon(flight);
+        pinsGroup.add(pin);
+      });
+      break;
+  }
+}
+
+/* ================================================================
+   LEGEND PER THEME
+   ================================================================ */
+function updateLegend(theme) {
+  const legends = {
+    meteo:      [['#67e8f9','Capitale / grande ville']],
+    seismes:    [['#fbbf24','M4.5 — M6'], ['#ff8c00','M6 — M7'], ['#f87171','M7+']],
+    conflits:   [['#f87171','Conflit actif élevé'], ['#fbbf24','Conflit modéré'], ['#a3e635','Tensions faibles']],
+    crypto:     [['#4ade80','Hausse 24h'], ['#f87171','Baisse 24h']],
+    iss:        [['#c084fc','Station spatiale ISS']],
+    population: [['#67e8f9','< 5M hab.'], ['#f97316','5M — 15M'], ['#f9a8c9','> 15M hab.']],
+    vols:       [['#fb923c','Vol en direct (OpenSky / simulé)']],
+  };
+
+  const items  = legends[theme] ?? [];
+  const legend = document.getElementById('legend');
+  legend.innerHTML = items.map(([c, label]) =>
+    `<div class="legend-item">
+       <div class="legend-dot" style="background:${c}"></div>
+       ${label}
+     </div>`
+  ).join('');
+}
+
+/* ================================================================
+   INFO PANEL (click) + TOOLTIP (hover)
+   Enregistrés sur le container DOM — renderer.domElement disponible
+   car initGlobe() l'a déjà ajouté avant que l'utilisateur puisse cliquer
+   ================================================================ */
+container.addEventListener('click', e => {
+  if (!renderer || !pinsGroup || !camera) return;
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
+  mouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const meshes = [];
+  pinsGroup.traverse(o => { if (o.isMesh) meshes.push(o); });
+  const hits = raycaster.intersectObjects(meshes);
+
+  if (hits.length > 0) {
+    let node = hits[0].object;
+    /* Remonter au Group parent pour récupérer userData complet */
+    while (node.parent && node.parent !== pinsGroup && Object.keys(node.userData).length < 2) {
+      node = node.parent;
+    }
+    showInfoCard(node.userData);
+  }
+});
+
+/* ── Tooltip on hover ── */
+container.addEventListener('mousemove', e => {
+  if (!renderer || !pinsGroup || !camera) return;
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
+  mouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const meshes = [];
+  pinsGroup.traverse(o => { if (o.isMesh) meshes.push(o); });
+  const hits = raycaster.intersectObjects(meshes);
+
+  if (hits.length > 0) {
+    let node = hits[0].object;
+    while (node.parent && node.parent !== pinsGroup && Object.keys(node.userData).length < 2) {
+      node = node.parent;
+    }
+    const d = node.userData;
+    ttName.textContent = d.name ?? '—';
+    ttInfo.textContent = tooltipLine(d);
+    tooltip.style.left = (e.clientX - rect.left + 14) + 'px';
+    tooltip.style.top  = (e.clientY - rect.top  - 32) + 'px';
+    tooltip.classList.add('visible');
+    container.style.cursor = 'pointer';
+  } else {
+    tooltip.classList.remove('visible');
+    container.style.cursor = 'grab';
+  }
+});
+
+function tooltipLine(d) {
+  switch (d._theme) {
+    case 'meteo':      return `${d.temp}°C — ${wmoLabel(d.code)}`;
+    case 'seismes':    return `Magnitude ${d.mag}`;
+    case 'conflits':   return d.type ?? '';
+    case 'crypto':     return `${d.symbol} — ${d.market}`;
+    case 'iss':        return `${d.altitude} km · ${d.velocity} km/h`;
+    case 'population': return `Pop. ${(d.pop/1_000_000).toFixed(1)}M`;
+    case 'vols':       return `${d.country ?? ''} · ${d.alt_m ? Math.round(d.alt_m) + ' m' : 'altitude N/A'}`;
+    default:           return '';
+  }
+}
+
+/* ── Info card in sidebar ── */
+function showInfoCard(d) {
+  const panel = document.getElementById('info-panel');
+
+  let rows = '';
+  let icon = '📍';
+  let sub  = '';
+
+  switch (d._theme) {
+    case 'meteo':
+      icon = wmoLabel(d.code).split(' ')[0];
+      sub  = esc(d.country);
+      rows = `
+        <div class="info-row"><span class="info-row-label">Température</span><span class="info-row-value">${esc(d.temp)}°C</span></div>
+        <div class="info-row"><span class="info-row-label">Météo</span><span class="info-row-value">${esc(wmoLabel(d.code))}</span></div>
+        <div class="info-row"><span class="info-row-label">Vent</span><span class="info-row-value">${esc(d.wind)} km/h</span></div>
+        <div class="info-row"><span class="info-row-label">Coordonnées</span><span class="info-row-value">${Number(d.lat).toFixed(2)}, ${Number(d.lon).toFixed(2)}</span></div>
+      `;
+      break;
+
+    case 'seismes': {
+      icon = '🌋';
+      sub  = esc(d.time);
+      const badgeEq = d.mag >= 7 ? 'badge-red' : d.mag >= 6 ? 'badge-yellow' : 'badge-green';
+      rows = `
+        <div class="info-row"><span class="info-row-label">Magnitude</span><span class="info-row-value"><span class="badge ${badgeEq}">M${esc(d.mag)}</span></span></div>
+        <div class="info-row"><span class="info-row-label">Profondeur</span><span class="info-row-value">${esc(d.depth)} km</span></div>
+        <div class="info-row"><span class="info-row-label">Date</span><span class="info-row-value">${esc(d.time)}</span></div>
+        ${d.url ? `<div class="info-row"><a href="${safeUrl(d.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--sakura);font-size:11px">Voir le rapport USGS →</a></div>` : ''}
+      `;
+      break;
+    }
+
+    case 'conflits': {
+      icon = d.intensity === 'high' ? '🔴' : d.intensity === 'medium' ? '🟡' : '🟢';
+      sub  = esc(d.type);
+      const badgeC   = d.intensity === 'high' ? 'badge-red' : d.intensity === 'medium' ? 'badge-yellow' : 'badge-green';
+      const labelC   = d.intensity === 'high' ? 'Élevé' : d.intensity === 'medium' ? 'Modéré' : 'Faible';
+      rows = `
+        <div class="info-row"><span class="info-row-label">Intensité</span><span class="info-row-value"><span class="badge ${badgeC}">${labelC}</span></span></div>
+        <div class="info-row" style="display:block;padding:8px 0;border-bottom:none"><span class="info-row-label" style="display:block;margin-bottom:6px">Contexte</span><span style="font-size:12px;color:var(--text-hi);line-height:1.5">${esc(d.desc)}</span></div>
+      `;
+      break;
+    }
+
+    case 'crypto': {
+      icon = '📈';
+      sub  = esc(d.market);
+      const chNum   = typeof d.change === 'number' ? d.change.toFixed(2) : '—';
+      const chClass = d.change >= 0 ? 'badge-green' : 'badge-red';
+      rows = `
+        <div class="info-row"><span class="info-row-label">Symbole</span><span class="info-row-value">${esc(d.symbol)}</span></div>
+        <div class="info-row"><span class="info-row-label">Variation 24h</span><span class="info-row-value"><span class="badge ${chClass}">${d.change >= 0 ? '+' : ''}${chNum}%</span></span></div>
+        <div class="info-row"><span class="info-row-label">Prix USD</span><span class="info-row-value">$${Number(d.price).toLocaleString('fr-FR')}</span></div>
+      `;
+      break;
+    }
+
+    case 'vols': {
+      icon = '✈️';
+      sub  = esc(d.country ?? 'Origine inconnue');
+      const altFt  = d.alt_m ? Math.round(d.alt_m * 3.281) : null;
+      const velKmh = d.vel_ms ? Math.round(d.vel_ms * 3.6) : null;
+      const hdg    = typeof d.heading === 'number' ? `${Math.round(d.heading)}°` : '—';
+      rows = `
+        <div class="info-row"><span class="info-row-label">Indicatif</span><span class="info-row-value">${esc(d.callsign || '—')}</span></div>
+        <div class="info-row"><span class="info-row-label">Code ICAO</span><span class="info-row-value">${esc(d.icao24 || '—')}</span></div>
+        <div class="info-row"><span class="info-row-label">Altitude</span><span class="info-row-value">${d.alt_m ? Math.round(d.alt_m) + ' m' : '—'}${altFt ? ` / ${altFt} ft` : ''}</span></div>
+        <div class="info-row"><span class="info-row-label">Vitesse</span><span class="info-row-value">${velKmh ? velKmh + ' km/h' : '—'}</span></div>
+        <div class="info-row"><span class="info-row-label">Cap</span><span class="info-row-value">${hdg}</span></div>
+        <div class="info-row"><span class="info-row-label">Pays</span><span class="info-row-value">${esc(d.country || '—')}</span></div>
+      `;
+      break;
+    }
+
+    case 'iss':
+      icon = '🛰';
+      sub  = 'Station Spatiale Internationale';
+      rows = `
+        <div class="info-row"><span class="info-row-label">Altitude</span><span class="info-row-value">${esc(d.altitude)} km</span></div>
+        <div class="info-row"><span class="info-row-label">Vitesse</span><span class="info-row-value">${Number(d.velocity).toLocaleString('fr-FR')} km/h</span></div>
+        <div class="info-row"><span class="info-row-label">Latitude</span><span class="info-row-value">${Number(d.lat).toFixed(3)}°</span></div>
+        <div class="info-row"><span class="info-row-label">Longitude</span><span class="info-row-value">${Number(d.lon).toFixed(3)}°</span></div>
+        <div class="info-row" style="border:none;padding-top:8px;font-size:11px;color:var(--text-lo)">Mise à jour toutes les 5 secondes</div>
+      `;
+      break;
+
+    case 'population':
+      icon = '👥';
+      sub  = esc(d.country);
+      rows = `
+        <div class="info-row"><span class="info-row-label">Population</span><span class="info-row-value">${(d.pop/1_000_000).toFixed(2)} M</span></div>
+        <div class="info-row"><span class="info-row-label">Pays</span><span class="info-row-value">${esc(d.country)}</span></div>
+        <div class="info-row"><span class="info-row-label">Coordonnées</span><span class="info-row-value">${Number(d.lat).toFixed(2)}, ${Number(d.lon).toFixed(2)}</span></div>
+      `;
+      break;
+  }
+
+  panel.innerHTML = `
+    <div class="info-card">
+      <div class="info-card-header">
+        <div class="info-card-icon">${icon}</div>
+        <div>
+          <div class="info-card-title">${esc(d.name)}</div>
+          <div class="info-card-sub">${sub}</div>
+        </div>
+      </div>
+      ${rows}
+    </div>
+  `;
+
+  /* Sur mobile : bottom sheet avec les mêmes données */
+  if (window.innerWidth <= 768) showMobileSheet(d, icon, sub, rows);
+}
+
+/**
+ * Affiche le bottom sheet mobile avec les données d'un pin.
+ * @param {object} d - Données du pin
+ * @param {string} icon - Emoji icon
+ * @param {string} sub - Sous-titre
+ * @param {string} rows - HTML des rangées (format info-row)
+ */
+function showMobileSheet(d, icon, sub, rows) {
+  const sheet   = document.getElementById('mobile-info-sheet');
+  const overlay = document.getElementById('mobile-sheet-overlay');
+  if (!sheet || !overlay) return;
+
+  document.getElementById('sheet-icon').textContent  = icon;
+  document.getElementById('sheet-title').textContent = d.name || 'Détails';
+  document.getElementById('sheet-sub').textContent   = sub || '';
+
+  /* Convertir les info-row en sheet-row (classes différentes pour le sheet) */
+  const sheetRows = rows
+    .replace(/class="info-row"/g, 'class="sheet-row"')
+    .replace(/class="info-row-label"/g, 'class="sheet-row-label"')
+    .replace(/class="info-row-value"/g, 'class="sheet-row-value"');
+
+  document.getElementById('sheet-rows').innerHTML = sheetRows;
+
+  sheet.classList.add('open');
+  overlay.classList.add('open');
+  sheet.setAttribute('aria-hidden', 'false');
+  overlay.setAttribute('aria-hidden', 'false');
+}
+
+/**
+ * Ferme le bottom sheet mobile.
+ */
+function closeMobileSheet() {
+  const sheet   = document.getElementById('mobile-info-sheet');
+  const overlay = document.getElementById('mobile-sheet-overlay');
+  sheet?.classList.remove('open');
+  overlay?.classList.remove('open');
+  sheet?.setAttribute('aria-hidden', 'true');
+  overlay?.setAttribute('aria-hidden', 'true');
+}
+
+/* Fermer le sheet au clic sur l'overlay ou le bouton close */
+document.getElementById('mobile-sheet-overlay')?.addEventListener('click', closeMobileSheet);
+document.getElementById('sheet-close-btn')?.addEventListener('click', closeMobileSheet);
+
+function showEmptyInfo() {
+  document.getElementById('info-panel').innerHTML = `
+    <div class="info-empty">
+      <div class="info-empty-icon">🌐</div>
+      <div class="info-empty-text">Cliquez sur un point<br>du globe pour les détails</div>
+    </div>
+  `;
+}
+
+/* ================================================================
+   CLOCK
+   ================================================================ */
+function updateClock() {
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+/* ================================================================
+   BOUTON AUTO-ROTATION
+   ================================================================ */
+const btnRotate = document.getElementById('btn-rotate');
+btnRotate?.addEventListener('click', () => {
+  autoRotate = !autoRotate;
+  btnRotate.classList.toggle('active', autoRotate);
+
+  /* Mettre à jour l'icône et le label selon l'état */
+  const icon  = btnRotate.querySelector('.btn-rotate-icon');
+  const label = btnRotate.querySelector('.btn-rotate-label');
+  if (autoRotate) {
+    if (icon)  icon.textContent  = '⏸';
+    if (label) label.textContent = 'STOP';
+    btnRotate.setAttribute('aria-label', 'Stopper la rotation du globe');
+    btnRotate.title = 'Stopper la rotation (R)';
+  } else {
+    if (icon)  icon.textContent  = '▶';
+    if (label) label.textContent = 'Tourner';
+    btnRotate.setAttribute('aria-label', 'Activer la rotation du globe');
+    btnRotate.title = 'Activer la rotation (R)';
+  }
+});
+
+/* ================================================================
+   RACCOURCIS CLAVIER
+   1-6 : changer de thème  |  R : toggle rotation
+   ================================================================ */
+document.addEventListener('keydown', (e) => {
+  /* Ignorer si l'utilisateur tape dans un champ */
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+  const THEMES = ['meteo', 'seismes', 'conflits', 'crypto', 'iss', 'population', 'vols'];
+
+  if (e.key >= '1' && e.key <= '7') {
+    const theme = THEMES[parseInt(e.key, 10) - 1];
+    if (theme) switchTheme(theme);
+  }
+
+  if (e.key === 'r' || e.key === 'R') {
+    btnRotate?.click();
+  }
+});
+
+/* ================================================================
+   TICKER (crypto live + forex live + simulated indices)
+   ================================================================ */
+async function initTicker() {
+  try {
+    /* ── Crypto from CoinGecko ── */
+    const cryptoIds = 'bitcoin,ethereum,solana,binancecoin,ripple,dogecoin';
+    const cryptoRes = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${cryptoIds}&vs_currencies=usd&include_24hr_change=true`);
+    const crypto    = await cryptoRes.json();
+
+    const cryptoItems = [
+      { sym: 'BTC',  id: 'bitcoin'     },
+      { sym: 'ETH',  id: 'ethereum'    },
+      { sym: 'SOL',  id: 'solana'      },
+      { sym: 'BNB',  id: 'binancecoin' },
+      { sym: 'XRP',  id: 'ripple'      },
+      { sym: 'DOGE', id: 'dogecoin'    },
+    ].map(c => ({
+      sym:    c.sym,
+      price:  crypto[c.id]?.usd,
+      change: crypto[c.id]?.usd_24h_change,
+    }));
+
+    /* ── Forex from Frankfurter ── */
+    const fxRes  = await fetch('https://api.frankfurter.app/latest?from=USD&to=EUR,GBP,JPY,CHF,CAD');
+    const fxJson = await fxRes.json();
+
+    const fxItems = Object.entries(fxJson.rates).map(([cur, rate]) => ({
+      sym:    `USD/${cur}`,
+      price:  rate,
+      change: (Math.random() - 0.5) * 0.4, /* small simulated variation */
+    }));
+
+    /* ── Simulated indices (realistic) ── */
+    const indices = [
+      { sym: 'S&P 500',  price: 5_218 + (Math.random()-0.5)*40,  change: (Math.random()-0.4)*1.5 },
+      { sym: 'NASDAQ',   price: 16_340 + (Math.random()-0.5)*120, change: (Math.random()-0.4)*1.8 },
+      { sym: 'DOW',      price: 38_900 + (Math.random()-0.5)*200, change: (Math.random()-0.4)*1.2 },
+      { sym: 'CAC 40',   price: 8_020 + (Math.random()-0.5)*60,   change: (Math.random()-0.4)*1.3 },
+      { sym: 'DAX',      price: 18_200 + (Math.random()-0.5)*90,  change: (Math.random()-0.4)*1.4 },
+      { sym: 'NIKKEI',   price: 38_600 + (Math.random()-0.5)*300, change: (Math.random()-0.4)*1.6 },
+    ];
+
+    const all = [...cryptoItems, ...fxItems, ...indices];
+    renderTicker(all);
+
+  } catch (err) {
+    console.warn('Ticker error:', err);
+    /* Fallback static data */
+    renderTicker([
+      { sym: 'BTC',   price: 67_000, change: 2.1  },
+      { sym: 'ETH',   price: 3_200,  change: -0.8 },
+      { sym: 'S&P 500', price: 5_218, change: 0.4 },
+    ]);
+  }
+
+  /* Refresh ticker every 3 minutes */
+  setTimeout(initTicker, 180_000);
+}
+
+/* ================================================================
+   MARKETS BAR — Indices boursiers + Forex live
+   La crypto est déjà dans le ticker du bas — pas de doublon ici.
+
+   Logique : on affiche IMMÉDIATEMENT les indices avec des valeurs
+   réalistes (jamais figé), puis on met à jour le forex avec
+   Frankfurter dès que la réponse arrive.
+   ================================================================ */
+
+/* Valeurs de référence des indices (mars 2025) — base pour la simulation */
+const INDEX_BASE = [
+  { sym: 'S&P 500',  tag: 'Indice US',  base: 5_650,  vol: 35  },
+  { sym: 'NASDAQ',   tag: 'Indice US',  base: 17_800, vol: 110 },
+  { sym: 'DOW',      tag: 'Indice US',  base: 41_500, vol: 180 },
+  { sym: 'CAC 40',   tag: 'Indice EU',  base: 7_950,  vol: 55  },
+  { sym: 'DAX',      tag: 'Indice EU',  base: 22_800, vol: 90  },
+  { sym: 'FTSE 100', tag: 'Indice UK',  base: 8_550,  vol: 50  },
+  { sym: 'NIKKEI',   tag: 'Indice JP',  base: 37_200, vol: 280 },
+  { sym: 'HANG SENG',tag: 'Indice HK',  base: 22_500, vol: 220 },
+];
+
+/* Génère des variations réalistes à chaque refresh */
+function buildIndexItems() {
+  return INDEX_BASE.map(idx => ({
+    sym:    idx.sym,
+    tag:    idx.tag,
+    price:  idx.base + (Math.random() - 0.5) * idx.vol,
+    change: (Math.random() - 0.48) * 1.6,   /* légère tendance positive */
+  }));
+}
+
+async function initMarkets() {
+  /* 1 — Afficher immédiatement les indices (jamais figé) */
+  const indexItems = buildIndexItems();
+  renderMarkets(indexItems, 'Indices…');
+
+  /* 2 — Charger le forex en parallèle (Frankfurter — gratuit, CORS ok) */
+  try {
+    const fRes  = await fetch(
+      'https://api.frankfurter.app/latest?from=USD&to=EUR,GBP,JPY,CHF,CAD,AUD',
+      { signal: AbortSignal.timeout(6000) }
+    );
+    const fData = await fRes.json();
+
+    /* Paires principales, taux inversé pour afficher USD/XXX */
+    const fxItems = [
+      { code: 'EUR', label: 'EUR/USD' },
+      { code: 'GBP', label: 'GBP/USD' },
+      { code: 'JPY', label: 'USD/JPY' },
+      { code: 'CHF', label: 'USD/CHF' },
+      { code: 'CAD', label: 'USD/CAD' },
+      { code: 'AUD', label: 'AUD/USD' },
+    ].filter(p => fData.rates[p.code]).map(p => {
+      const rate = fData.rates[p.code];
+      /* JPY et CAD : afficher taux direct (USD→JPY = grand nombre) */
+      const price  = p.label.startsWith('USD/') ? rate : 1 / rate;
+      return {
+        sym:    p.label,
+        tag:    'Forex',
+        price,
+        change: (Math.random() - 0.5) * 0.25,   /* variation intraday simulée */
+      };
+    });
+
+    renderMarkets([...indexItems, ...fxItems], 'Live');
+  } catch (err) {
+    /* Forex indispo — on garde les indices seuls */
+    console.warn('Forex error:', err);
+    renderMarkets(indexItems, 'Indices only');
+  }
+
+  /* Refresh toutes les 90 secondes */
+  setTimeout(initMarkets, 90_000);
+}
+
+function renderMarkets(items, status = 'Live') {
+  const refreshEl = document.getElementById('markets-refresh');
+  if (refreshEl) {
+    refreshEl.textContent = status === 'Live'
+      ? 'Mis à jour ' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+      : status;
+  }
+
+  const container = document.getElementById('markets-items');
+
+  /* Dupliquer les items pour le défilement infini (même pattern que le ticker) */
+  const html = [...items, ...items].map(item => {
+    const price = item.price == null ? '—' :
+      item.price >= 1000 ? item.price.toLocaleString('fr-FR', { maximumFractionDigits: 0 }) :
+      item.price >= 1    ? item.price.toFixed(2) :
+      item.price.toFixed(4);
+
+    const ch    = typeof item.change === 'number' ? item.change : 0;
+    const sign  = ch >= 0 ? '+' : '';
+    const cls   = ch >= 0 ? 'up' : 'down';
+    const arrow = ch >= 0 ? '▲' : '▼';
+
+    /* Flash visuel si la variation dépasse 1.2% (valeurs notables) */
+    const flashClass = Math.abs(ch) >= 1.2 ? (ch >= 0 ? ' flash-up' : ' flash-down') : '';
+
+    /* Toutes les valeurs texte passent par esc() */
+    return `
+      <div class="market-item${flashClass}">
+        <div class="market-top">
+          <span class="market-sym">${esc(item.sym)}</span>
+          <span class="market-tag" data-type="${esc(item.tag)}">${esc(item.tag)}</span>
+        </div>
+        <div class="market-bottom">
+          <span class="market-price">${price}</span>
+          <span class="market-change ${cls}">${arrow} ${sign}${ch.toFixed(2)}%</span>
+        </div>
+      </div>`;
+  }).join('');
+
+  /* Envelopper dans un track animé (auto-marquee infini) */
+  container.innerHTML = `<div class="markets-track">${html}</div>`;
+}
+
+/* ================================================================
+   NEWS SIDEBAR — RSS temps réel
+   Stratégie en 3 couches pour garantir la disponibilité :
+   1. rss2json.com (JSON direct, gratuit)
+   2. allorigins.win (proxy CORS → parse XML avec DOMParser)
+   3. corsproxy.io  (proxy CORS alternatif)
+   Sources actives : BBC World · Al Jazeera · The Guardian · NPR
+   ================================================================ */
+
+/* Flux RSS vérifiés actifs en 2025 */
+const NEWS_FEEDS = [
+  { url: 'https://feeds.bbci.co.uk/news/world/rss.xml',       label: 'BBC World'    },
+  { url: 'https://www.aljazeera.com/xml/rss/all.xml',         label: 'Al Jazeera'   },
+  { url: 'https://www.theguardian.com/world/rss',             label: 'The Guardian' },
+  { url: 'https://feeds.npr.org/1004/rss.xml',                label: 'NPR World'    },
+  { url: 'https://rss.nytimes.com/services/xml/rss/nyt/World.xml', label: 'NY Times' },
+];
+
+/* Méthode 1 — rss2json.com → renvoie JSON directement */
+async function fetchViaRss2json(feedUrl) {
+  const api = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}&count=20`;
+  const res  = await fetch(api, { signal: AbortSignal.timeout(6000) });
+  const json = await res.json();
+  if (json.status !== 'ok' || !json.items?.length) throw new Error('rss2json empty');
+  return json.items.map(item => ({
+    title:  item.title?.trim(),
+    link:   item.link,
+    date:   item.pubDate,
+    source: json.feed?.title ?? 'World News',
+    cat:    Array.isArray(item.categories) ? item.categories[0] : 'International',
+  })).filter(a => a.title);
+}
+
+/* Méthode 2 — proxy CORS + DOMParser (fallback universel) */
+async function fetchViaProxy(feedUrl, proxyBase) {
+  const proxied = `${proxyBase}${encodeURIComponent(feedUrl)}`;
+  const res     = await fetch(proxied, { signal: AbortSignal.timeout(8000) });
+  const text    = proxyBase.includes('allorigins')
+    ? (await res.json()).contents          /* allorigins enveloppe dans .contents */
+    : await res.text();
+  const doc     = new DOMParser().parseFromString(text, 'text/xml');
+  const items   = [...doc.querySelectorAll('item')];
+  if (!items.length) throw new Error('proxy empty');
+  const source  = doc.querySelector('channel > title')?.textContent?.trim() ?? 'World News';
+  return items.slice(0, 20).map(el => ({
+    title:  el.querySelector('title')?.textContent?.trim(),
+    link:   el.querySelector('link')?.textContent?.trim()
+         || el.querySelector('guid')?.textContent?.trim(),
+    date:   el.querySelector('pubDate')?.textContent?.trim(),
+    source,
+    cat:    el.querySelector('category')?.textContent?.trim() ?? 'International',
+  })).filter(a => a.title);
+}
+
+async function initNews() {
+  const newsEl = document.getElementById('news-list');
+
+  /* Tentatives ordonnées : rss2json puis deux proxies CORS sur plusieurs feeds */
+  const strategies = [];
+  for (const feed of NEWS_FEEDS) {
+    strategies.push(
+      () => fetchViaRss2json(feed.url),
+      () => fetchViaProxy(feed.url, 'https://api.allorigins.win/get?url='),
+      () => fetchViaProxy(feed.url, 'https://corsproxy.io/?'),
+    );
+  }
+
+  let articles = [];
+  for (const attempt of strategies) {
+    try {
+      articles = await attempt();
+      if (articles.length) break;
+    } catch { /* essayer la stratégie suivante */ }
+  }
+
+  if (articles.length) {
+    renderNews(articles);
+  } else {
+    console.warn('News: toutes les sources ont échoué');
+    newsEl.innerHTML = `
+      <div class="news-empty">
+        <div>📡</div>
+        <div style="text-align:center;padding:0 12px">
+          Actualités indisponibles<br>
+          <span style="font-size:10px">Vérifiez la connexion</span>
+        </div>
+      </div>`;
+  }
+
+  /* Refresh toutes les 10 minutes */
+  setTimeout(initNews, 600_000);
+}
+
+function renderNews(articles) {
+  const newsEl = document.getElementById('news-list');
+
+  newsEl.innerHTML = articles.map((a, i) => {
+    /* Date relative — défensive si le format est invalide */
+    let age = '';
+    try {
+      const diff  = Date.now() - new Date(a.date).getTime();
+      const hours = Math.floor(diff / 3_600_000);
+      const mins  = Math.floor(diff / 60_000);
+      age = hours > 0 ? `il y a ${hours}h` : mins > 0 ? `il y a ${mins}min` : 'À l\'instant';
+    } catch { age = ''; }
+
+    /* Toutes les valeurs passent par esc() — prévient les injections XSS */
+    return `
+      <a class="news-item" href="${safeUrl(a.link)}" target="_blank" rel="noopener noreferrer" style="--i:${i}">
+        <div class="news-item-cat">${esc((a.cat || 'World').toUpperCase().slice(0, 25))}</div>
+        <div class="news-item-title">${esc(a.title)}</div>
+        <div class="news-item-meta">${esc(a.source)} · ${esc(age)}</div>
+      </a>`;
+  }).join('');
+}
+
+function renderTicker(items) {
+  const track = document.getElementById('ticker-track');
+  /* Doublé pour le défilement infini fluide — CSS translateX(-50%) */
+  const html = [...items, ...items].map(item => {
+    const price = typeof item.price === 'number'
+      ? item.price >= 1000
+        ? item.price.toLocaleString('fr-FR', { maximumFractionDigits: 0 })
+        : item.price >= 1 ? item.price.toFixed(2) : item.price.toFixed(4)
+      : '—';
+    const ch      = typeof item.change === 'number' ? item.change : 0;
+    const chStr   = (ch >= 0 ? '+' : '') + ch.toFixed(2) + '%';
+    const chClass = ch >= 0 ? 'up' : 'down';
+    const arrow   = ch >= 0 ? '▲' : '▼';
+
+    /* esc() sur item.sym — données potentiellement externes */
+    return `<div class="ticker-item">
+      <span class="ticker-sym">${esc(item.sym)}</span>
+      <span class="ticker-price">${price}</span>
+      <span class="ticker-change ${chClass}">${arrow} ${chStr}</span>
+    </div>`;
+  }).join('');
+  track.innerHTML = html;
+}
+
+/* ================================================================
+   THREE.JS HELPERS (inlined — no separate files)
+   ================================================================ */
+
+/* ── Stars ── */
+function buildStarfield(numStars = 3000) {
+  const verts  = [];
+  const colors = [];
+  for (let i = 0; i < numStars; i++) {
+    const r     = 25 + Math.random() * 25;
+    const u     = Math.random();
+    const v     = Math.random();
+    const theta = 2 * Math.PI * u;
+    const phi   = Math.acos(2 * v - 1);
+    verts.push(
+      r * Math.sin(phi) * Math.cos(theta),
+      r * Math.sin(phi) * Math.sin(theta),
+      r * Math.cos(phi)
+    );
+    const col = new THREE.Color().setHSL(0.6, 0.3, 0.5 + Math.random() * 0.5);
+    colors.push(col.r, col.g, col.b);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+  geo.setAttribute('color',    new THREE.Float32BufferAttribute(colors, 3));
+  return new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.12, vertexColors: true, sizeAttenuation: true }));
+}
+
+/* ── Fresnel atmosphere ── */
+function buildFresnelMat(rimHex = 0x3a9bd8, facingHex = 0x000000) {
+  const uniforms = {
+    color1:       { value: new THREE.Color(rimHex) },
+    color2:       { value: new THREE.Color(facingHex) },
+    fresnelBias:  { value: 0.2 },
+    fresnelScale: { value: 1.0 },
+    fresnelPower: { value: 8.0 },
+  };
+  const vs = `
+    uniform float fresnelBias, fresnelScale, fresnelPower;
+    varying float vRF;
+    void main() {
+      vec4 mvPos  = modelViewMatrix * vec4(position, 1.0);
+      vec4 wPos   = modelMatrix * vec4(position, 1.0);
+      vec3 wNorm  = normalize(mat3(modelMatrix[0].xyz, modelMatrix[1].xyz, modelMatrix[2].xyz) * normal);
+      vec3 I      = wPos.xyz - cameraPosition;
+      vRF = fresnelBias + fresnelScale * pow(1.0 + dot(normalize(I), wNorm), fresnelPower);
+      gl_Position = projectionMatrix * mvPos;
+    }
+  `;
+  const fs = `
+    uniform vec3 color1, color2;
+    varying float vRF;
+    void main() {
+      float f = clamp(vRF, 0.0, 1.0);
+      gl_FragColor = vec4(mix(color2, color1, vec3(f)), f);
+    }
+  `;
+  return new THREE.ShaderMaterial({
+    uniforms, vertexShader: vs, fragmentShader: fs,
+    transparent: true, blending: THREE.AdditiveBlending,
+  });
+}
+
+</script>
+
+<!-- ── BOTTOM SHEET MOBILE — info sur un pin cliqué ── -->
+<div class="mobile-sheet-overlay" id="mobile-sheet-overlay" aria-hidden="true"></div>
+<div class="mobile-info-sheet" id="mobile-info-sheet" role="dialog" aria-hidden="true" aria-labelledby="sheet-title">
+  <div class="sheet-drag-handle" aria-hidden="true"></div>
+  <div class="sheet-header">
+    <span class="sheet-icon" id="sheet-icon">🌐</span>
+    <div class="sheet-header-text">
+      <span class="sheet-title" id="sheet-title">Détails</span>
+      <span class="sheet-sub" id="sheet-sub"></span>
+    </div>
+    <button class="sheet-close-btn" id="sheet-close-btn" aria-label="Fermer" type="button">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+        <line x1="1" y1="1" x2="13" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <line x1="13" y1="1" x2="1" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+  <div class="sheet-rows" id="sheet-rows"></div>
+</div>
+</body>
+</html>
