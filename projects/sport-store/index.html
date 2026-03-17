@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sporting — Equipement Sportif</title>
+  <meta name="description" content="Boutique d'équipement sportif dynamique. Design énergique, couleurs vives et navigation intuitive.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://abd-chenaoui.github.io/projects/sport-store/">
+  <meta property="og:title" content="Sporting — Équipement Sportif">
+  <meta property="og:description" content="E-commerce sport : équipement sportif dynamique avec design énergique.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://abd-chenaoui.github.io/projects/sport-store/">
+  <style>
+    /* ============================================
+       Sporting — Sport Equipment Store Mockup
+       Theme: Electric blue, neon green, dark, energetic
+       ============================================ */
+    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Barlow+Condensed:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;1,200;1,300&display=swap');
+
+    :root {
+      --electric: #00d4ff;
+      --neon: #39ff14;
+      --neon-dim: rgba(57, 255, 20, 0.15);
+      --dark: #080812;
+      --dark-mid: #0d0d1e;
+      --dark-card: #111125;
+      --white: #f0f0f5;
+      --text: #c8c8d8;
+      --text-dim: rgba(200, 200, 216, 0.5);
+      --font-display: 'Rajdhani', sans-serif;
+      --font-body: 'Barlow Condensed', sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--dark);
+      color: var(--text);
+      font-family: var(--font-body);
+      overflow-x: hidden;
+    }
+
+    /* ======= BACK BUTTON ======= */
+    .back-btn {
+      position: fixed; top: 1.5rem; left: 1.5rem; z-index: 1000;
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.75rem 1.2rem; /* 0.75rem × 2 + font ≈ 44px — zone tactile minimum mobile */
+      min-height: 44px; /* WCAG 2.5.8 : cible tactile 44×44px minimum */
+      background: rgba(8, 8, 18, 0.8);
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      border-radius: 100px;
+      color: var(--electric);
+      font-family: var(--font-display);
+      font-size: 0.75rem; font-weight: 500;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      text-decoration: none;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s;
+    }
+    .back-btn:hover { background: rgba(0, 212, 255, 0.1); border-color: var(--electric); }
+    .back-btn svg { width: 14px; height: 14px; }
+
+    /* ======= NAVBAR ======= */
+    .sp-nav {
+      padding: 1rem 3rem;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid rgba(0, 212, 255, 0.06);
+      background: rgba(8, 8, 18, 0.9);
+      backdrop-filter: blur(10px);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .sp-logo {
+      font-family: var(--font-display);
+      font-size: 1.6rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .sp-logo span { color: var(--electric); }
+    .sp-logo em {
+      font-style: normal; font-weight: 300;
+      color: var(--neon); font-size: 0.7em;
+    }
+    .sp-nav-links {
+      display: flex; gap: 2rem; list-style: none;
+    }
+    .sp-nav-links a {
+      font-family: var(--font-display);
+      font-size: 0.8rem; font-weight: 500;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--text-dim); text-decoration: none;
+      transition: color 0.3s;
+    }
+    .sp-nav-links a:hover { color: var(--electric); }
+    .sp-cart {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.5rem 1.2rem;
+      border: 1px solid rgba(57, 255, 20, 0.3);
+      font-family: var(--font-display);
+      font-size: 0.75rem; font-weight: 500;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--neon);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .sp-cart:hover { background: var(--neon-dim); }
+    .sp-cart svg { width: 16px; height: 16px; stroke: var(--neon); fill: none; }
+
+    /* ======= HERO ======= */
+    .sp-hero {
+      position: relative;
+      height: 85vh;
+      display: flex; align-items: center;
+      overflow: hidden;
+    }
+    .sp-hero-bg {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background:
+        linear-gradient(135deg, rgba(8,8,18,0.88) 0%, rgba(13,13,30,0.75) 50%, rgba(8,8,18,0.88) 100%),
+        url('https://images.pexels.com/photos/1598505/pexels-photo-1598505.jpeg?auto=compress&cs=tinysrgb&w=1200&fit=crop') center/cover no-repeat;
+    }
+    /* Diagonal energy lines */
+    .sp-hero-lines {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      overflow: hidden;
+    }
+    .sp-hero-lines::before {
+      content: '';
+      position: absolute;
+      top: -50%; left: 60%;
+      width: 2px; height: 200%;
+      background: linear-gradient(to bottom, transparent, rgba(0, 212, 255, 0.1), transparent);
+      transform: rotate(25deg);
+    }
+    .sp-hero-lines::after {
+      content: '';
+      position: absolute;
+      top: -50%; left: 70%;
+      width: 1px; height: 200%;
+      background: linear-gradient(to bottom, transparent, rgba(57, 255, 20, 0.05), transparent);
+      transform: rotate(25deg);
+    }
+    /* Glow orbs */
+    .sp-orb {
+      position: absolute; border-radius: 50%;
+      filter: blur(80px);
+    }
+    .sp-orb-1 {
+      width: 300px; height: 300px;
+      background: rgba(0, 212, 255, 0.08);
+      top: 10%; right: 10%;
+    }
+    .sp-orb-2 {
+      width: 200px; height: 200px;
+      background: rgba(57, 255, 20, 0.05);
+      bottom: 20%; right: 30%;
+    }
+    /* Speed lines */
+    .speed-line {
+      position: absolute;
+      height: 2px;
+      background: linear-gradient(to right, transparent, var(--electric), transparent);
+      opacity: 0;
+      animation: speedLine 3s ease-in-out infinite;
+    }
+    .speed-line:nth-child(1) { top: 30%; left: 0; width: 200px; animation-delay: 0s; }
+    .speed-line:nth-child(2) { top: 50%; left: 0; width: 150px; animation-delay: 0.5s; }
+    .speed-line:nth-child(3) { top: 70%; left: 0; width: 250px; animation-delay: 1s; }
+    @keyframes speedLine {
+      0% { opacity: 0; transform: translateX(-100px); }
+      30% { opacity: 0.5; }
+      70% { opacity: 0.5; }
+      100% { opacity: 0; transform: translateX(calc(100% + 100px)); } /* 100% au lieu de 100vw pour éviter l'overflow horizontal */
+    }
+
+    .sp-hero-content {
+      position: relative; z-index: 2;
+      padding: 0 3rem;
+      max-width: 700px;
+    }
+    .sp-hero-tag {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-family: var(--font-display);
+      font-size: 0.75rem; font-weight: 500;
+      letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--neon);
+      padding: 0.4rem 1rem;
+      border: 1px solid var(--neon-dim);
+      margin-bottom: 1.5rem;
+    }
+    .sp-hero-tag::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--neon);
+      border-radius: 50%;
+      animation: blink 1.5s ease-in-out infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    .sp-hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(3.5rem, 7vw, 6rem);
+      font-weight: 700; line-height: 0.95;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+    .sp-hero-title span {
+      display: block;
+      -webkit-text-stroke: 1px var(--electric);
+      -webkit-text-fill-color: transparent;
+    }
+    .sp-hero-desc {
+      font-size: 1rem; font-weight: 300;
+      color: var(--text-dim);
+      margin-top: 1.5rem; max-width: 450px;
+      line-height: 1.7;
+    }
+    .sp-hero-btns {
+      display: flex; gap: 1rem; margin-top: 2.5rem;
+    }
+    .sp-btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.9rem 2rem;
+      font-family: var(--font-display);
+      font-size: 0.8rem; font-weight: 600;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      text-decoration: none;
+      clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    .sp-btn-primary {
+      background: var(--electric);
+      color: var(--dark);
+    }
+    .sp-btn-primary:hover {
+      background: #33e0ff;
+      box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+    }
+    .sp-btn-ghost {
+      background: transparent;
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      color: var(--electric);
+    }
+    .sp-btn-ghost:hover {
+      background: rgba(0, 212, 255, 0.1);
+    }
+
+    /* ======= STATS BAR ======= */
+    .sp-stats {
+      display: flex; justify-content: center; gap: 4rem;
+      padding: 2.5rem 0;
+      border-top: 1px solid rgba(0, 212, 255, 0.06);
+      border-bottom: 1px solid rgba(0, 212, 255, 0.06);
+      background: var(--dark-mid);
+    }
+    .sp-stat {
+      text-align: center;
+    }
+    .sp-stat-num {
+      font-family: var(--font-display);
+      font-size: 2rem; font-weight: 700;
+      color: var(--electric);
+    }
+    .sp-stat-num span { color: var(--neon); }
+    .sp-stat-label {
+      font-size: 0.7rem; font-weight: 300;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-dim);
+      margin-top: 0.25rem;
+    }
+
+    /* ======= CATEGORIES DIAGONAL ======= */
+    .sp-categories {
+      padding: 6rem 3rem;
+      position: relative;
+    }
+    .sp-section-header {
+      text-align: center; margin-bottom: 4rem;
+    }
+    .sp-section-tag {
+      font-family: var(--font-display);
+      font-size: 0.7rem; font-weight: 500;
+      letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--neon);
+    }
+    .sp-section-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 5vw, 3.5rem);
+      font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .sp-section-title span {
+      -webkit-text-stroke: 1px var(--electric);
+      -webkit-text-fill-color: transparent;
+    }
+
+    .sp-cat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+      max-width: 1100px; margin: 0 auto;
+    }
+    .sp-cat-card {
+      position: relative; height: 320px;
+      overflow: hidden;
+      clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+      cursor: pointer;
+      transition: all 0.4s;
+    }
+    .sp-cat-card:hover { transform: translateY(-5px); }
+    .sp-cat-card:hover .sp-cat-bg { transform: scale(1.05); }
+
+    .sp-cat-bg {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      transition: transform 0.5s;
+    }
+    .sp-cat-bg-1 {
+      background: linear-gradient(to top, rgba(8,8,18,0.85), rgba(13,27,42,0.5)), url('https://images.pexels.com/photos/2529147/pexels-photo-2529147.jpeg?auto=compress&cs=tinysrgb&w=400&fit=crop') center/cover no-repeat;
+    }
+    .sp-cat-bg-2 {
+      background: linear-gradient(to top, rgba(8,8,18,0.85), rgba(26,10,46,0.5)), url('https://images.pexels.com/photos/6311387/pexels-photo-6311387.jpeg?auto=compress&cs=tinysrgb&w=400&fit=crop') center/cover no-repeat;
+    }
+    .sp-cat-bg-3 {
+      background: linear-gradient(to top, rgba(8,8,18,0.85), rgba(10,26,13,0.5)), url('https://images.pexels.com/photos/3621185/pexels-photo-3621185.jpeg?auto=compress&cs=tinysrgb&w=400&fit=crop') center/cover no-repeat;
+    }
+    .sp-cat-bg-4 {
+      background: linear-gradient(to top, rgba(8,8,18,0.85), rgba(30,10,10,0.5)), url('https://images.pexels.com/photos/4753987/pexels-photo-4753987.jpeg?auto=compress&cs=tinysrgb&w=400&fit=crop') center/cover no-repeat;
+    }
+
+    .sp-cat-info {
+      position: absolute; bottom: 0; left: 0;
+      width: 100%; padding: 1.5rem;
+      background: linear-gradient(to top, rgba(8, 8, 18, 0.95), transparent);
+    }
+    .sp-cat-name {
+      font-family: var(--font-display);
+      font-size: 1.2rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .sp-cat-count {
+      font-size: 0.7rem; font-weight: 300;
+      color: var(--electric);
+      letter-spacing: 0.1em;
+    }
+
+    /* ======= PRODUCTS GRID ======= */
+    .sp-products {
+      padding: 6rem 3rem;
+      background: var(--dark-mid);
+    }
+    .sp-products-filter {
+      display: flex; justify-content: center; gap: 1rem;
+      margin-bottom: 3rem; flex-wrap: wrap;
+    }
+    .sp-filter-btn {
+      padding: 0.5rem 1.5rem;
+      font-family: var(--font-display);
+      font-size: 0.75rem; font-weight: 500;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--text-dim);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.3s;
+      clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+    }
+    .sp-filter-btn:hover, .sp-filter-btn.active {
+      border-color: var(--electric);
+      color: var(--electric);
+      background: rgba(0, 212, 255, 0.05);
+    }
+    .sp-products-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      max-width: 1100px; margin: 0 auto;
+    }
+    .sp-product {
+      background: var(--dark-card);
+      border: 1px solid rgba(0, 212, 255, 0.04);
+      transition: all 0.4s;
+      cursor: pointer;
+      clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+    }
+    .sp-product:hover {
+      border-color: rgba(0, 212, 255, 0.15);
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    }
+    .sp-product-img {
+      position: relative; aspect-ratio: 4/3;
+      background: rgba(0, 212, 255, 0.02);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    .sp-product-shape {
+      width: 60px; height: 60px;
+      border: 2px solid rgba(0, 212, 255, 0.1);
+      border-radius: 50%;
+      position: relative;
+    }
+    .sp-product-shape::after {
+      content: '';
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 20px; height: 20px;
+      background: rgba(0, 212, 255, 0.1);
+      border-radius: 50%;
+    }
+    .sp-product:nth-child(1) .sp-product-img { background: linear-gradient(to top, rgba(17,17,37,0.6), rgba(17,17,37,0.3)), url('https://images.pexels.com/photos/8268988/pexels-photo-8268988.jpeg?auto=compress&cs=tinysrgb&w=400&fit=crop') center/cover no-repeat; }
+    .sp-product:nth-child(2) .sp-product-img { background: linear-gradient(to top, rgba(17,17,37,0.6), rgba(17,17,37,0.3)), url('https://images.pexels.com/photos/6311387/pexels-photo-6311387.jpeg?auto=compress&cs=tinysrgb&w=400&fit=crop') center/cover no-repeat; }
+    .sp-product:nth-child(3) .sp-product-img { background: linear-gradient(to top, rgba(17,17,37,0.6), rgba(17,17,37,0.3)), url('https://images.pexels.com/photos/437037/pexels-photo-437037.jpeg?auto=compress&cs=tinysrgb&w=400&fit=crop') center/cover no-repeat; }
+    .sp-product:nth-child(4) .sp-product-img { background: linear-gradient(to top, rgba(17,17,37,0.6), rgba(17,17,37,0.3)), url('https://images.pexels.com/photos/2529147/pexels-photo-2529147.jpeg?auto=compress&cs=tinysrgb&w=400&fit=crop') center/cover no-repeat; }
+    .sp-product:nth-child(5) .sp-product-img { background: linear-gradient(to top, rgba(17,17,37,0.6), rgba(17,17,37,0.3)), url('https://images.pexels.com/photos/3621185/pexels-photo-3621185.jpeg?auto=compress&cs=tinysrgb&w=400&fit=crop') center/cover no-repeat; }
+    .sp-product:nth-child(6) .sp-product-img { background: linear-gradient(to top, rgba(17,17,37,0.6), rgba(17,17,37,0.3)), url('https://images.pexels.com/photos/4753987/pexels-photo-4753987.jpeg?auto=compress&cs=tinysrgb&w=400&fit=crop') center/cover no-repeat; }
+    .sp-product-shape { display: none; }
+    .sp-product-discount {
+      position: absolute; top: 1rem; right: 1rem;
+      padding: 0.3rem 0.8rem;
+      background: var(--neon);
+      font-family: var(--font-display);
+      font-size: 0.7rem; font-weight: 600;
+      color: var(--dark);
+      clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+    }
+    .sp-product-info {
+      padding: 1.5rem;
+    }
+    .sp-product-brand {
+      font-size: 0.65rem; font-weight: 300;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--electric);
+    }
+    .sp-product-name {
+      font-family: var(--font-display);
+      font-size: 1.1rem; font-weight: 600;
+      text-transform: uppercase;
+      margin-top: 0.25rem;
+    }
+    .sp-product-price-row {
+      display: flex; align-items: center; gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+    .sp-product-price {
+      font-family: var(--font-display);
+      font-size: 1.1rem; font-weight: 700;
+      color: var(--neon);
+    }
+    .sp-product-old-price {
+      font-size: 0.8rem; font-weight: 300;
+      color: var(--text-dim);
+      text-decoration: line-through;
+    }
+    .sp-add-btn {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0.5rem;
+      width: 100%; padding: 0.8rem;
+      min-height: 44px; /* zone tactile minimum WCAG */
+      margin-top: 1rem;
+      background: transparent;
+      border: 1px solid rgba(0, 212, 255, 0.15);
+      font-family: var(--font-display);
+      font-size: 0.7rem; font-weight: 500;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--electric);
+      cursor: pointer;
+      transition: all 0.3s;
+      clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+    }
+    .sp-add-btn:hover {
+      background: rgba(0, 212, 255, 0.1);
+      border-color: var(--electric);
+    }
+
+    /* ======= CTA BANNER ======= */
+    .sp-cta {
+      padding: 6rem 3rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .sp-cta::before {
+      content: '';
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background:
+        linear-gradient(135deg, rgba(0, 212, 255, 0.03), transparent 40%),
+        linear-gradient(225deg, rgba(57, 255, 20, 0.02), transparent 40%);
+    }
+    .sp-cta h2 {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 700; text-transform: uppercase;
+      position: relative;
+    }
+    .sp-cta h2 span { color: var(--electric); }
+    .sp-cta p {
+      font-size: 1rem; font-weight: 300;
+      color: var(--text-dim);
+      margin: 1rem auto 2rem;
+      max-width: 500px;
+    }
+
+    /* ======= FOOTER ======= */
+    .sp-footer {
+      padding: 2rem 3rem;
+      border-top: 1px solid rgba(0, 212, 255, 0.06);
+      text-align: center;
+      font-size: 0.7rem; font-weight: 300;
+      letter-spacing: 0.15em;
+      color: var(--text-dim);
+    }
+    .sp-footer span { color: var(--electric); }
+
+    /* ======= REVEAL ======= */
+    .sp-reveal {
+      opacity: 0; transform: translateY(30px);
+      transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .sp-reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ======= RESPONSIVE ======= */
+    @media (max-width: 1024px) {
+      .sp-cat-grid { grid-template-columns: repeat(2, 1fr); }
+      .sp-products-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+      /* Navigation */
+      .sp-nav-links { display: none; }
+      .sp-nav { padding: 0 1.2rem; }
+
+      /* Hero */
+      .sp-hero { height: 70vh; min-height: 480px; }
+      .sp-hero-content { padding: 0 1.2rem; max-width: 100%; }
+      .sp-hero-content h1 { font-size: clamp(2rem, 8vw, 3rem); }
+      .sp-hero-content p { font-size: 0.9rem; }
+      .sp-hero-btns { flex-wrap: wrap; gap: 0.8rem; }
+      .sp-speed-line { display: none; } /* retire les lignes de vitesse sur mobile */
+
+      /* Stats bar */
+      .sp-stats { gap: 1.5rem; flex-wrap: wrap; padding: 1.2rem; justify-content: center; }
+      .sp-stat-val { font-size: 1.4rem; }
+
+      /* Categories : 2 colonnes, hauteur réduite */
+      .sp-cat-grid { grid-template-columns: 1fr 1fr; gap: 0.6rem; padding: 0 1rem; }
+      .sp-cat-card { height: 180px; }
+      .sp-cat-card h3 { font-size: 0.9rem; }
+
+      /* Produits : 2 colonnes sur mobile (pas 1) */
+      .sp-products-grid { grid-template-columns: 1fr 1fr; gap: 0.8rem; padding: 0 1rem; }
+      .sp-product-img { aspect-ratio: 3/2; } /* moins haut qu'en 4/3 */
+      .sp-product-info { padding: 0.8rem; }
+      .sp-product-name { font-size: 0.85rem; }
+      .sp-product-price { font-size: 1rem; }
+
+      /* Back button */
+      .back-btn { font-size: 0; padding: 8px 10px; gap: 0; }
+      .back-btn svg { display: block; }
+    }
+
+    @media (max-width: 480px) {
+      /* Produits : 1 colonne seulement sur très petit écran */
+      .sp-products-grid { grid-template-columns: 1fr; }
+      .sp-product-img { aspect-ratio: 16/9; }
+      .sp-cat-grid { grid-template-columns: 1fr; }
+      .sp-cat-card { height: 160px; }
+    }
+  </style>
+</head>
+<body>
+
+  <a href="../../index.html" class="back-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M19 12H5M12 19l-7-7 7-7"/>
+    </svg>
+    Portfolio
+  </a>
+
+  <!-- Navbar -->
+  <nav class="sp-nav">
+    <div class="sp-logo"><span>SPORT</span><em>ING</em></div>
+    <ul class="sp-nav-links">
+      <li><a href="#">Homme</a></li>
+      <li><a href="#">Femme</a></li>
+      <li><a href="#">Running</a></li>
+      <li><a href="#">Training</a></li>
+      <li><a href="#">Nouveautes</a></li>
+    </ul>
+    <div class="sp-cart">
+      <svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/></svg>
+      Panier (0)
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="sp-hero">
+    <div class="sp-hero-bg"></div>
+    <div class="sp-hero-lines"></div>
+    <div class="sp-orb sp-orb-1"></div>
+    <div class="sp-orb sp-orb-2"></div>
+    <div class="speed-line"></div>
+    <div class="speed-line"></div>
+    <div class="speed-line"></div>
+
+    <div class="sp-hero-content">
+      <div class="sp-hero-tag">Nouvelle collection 2024</div>
+      <h1 class="sp-hero-title">
+        DEPASSEZ<br>
+        <span>VOS LIMITES</span>
+      </h1>
+      <p class="sp-hero-desc">
+        Equipement haute performance concu pour les athletes qui n'acceptent
+        aucun compromis. Technologie de pointe, design audacieux.
+      </p>
+      <div class="sp-hero-btns">
+        <a href="#" class="sp-btn sp-btn-primary">Voir la collection</a>
+        <a href="#" class="sp-btn sp-btn-ghost">Nouveautes</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <div class="sp-stats sp-reveal">
+    <div class="sp-stat">
+      <div class="sp-stat-num">500<span>+</span></div>
+      <div class="sp-stat-label">Produits</div>
+    </div>
+    <div class="sp-stat">
+      <div class="sp-stat-num">50K<span>+</span></div>
+      <div class="sp-stat-label">Athletes equipes</div>
+    </div>
+    <div class="sp-stat">
+      <div class="sp-stat-num">4.9<span>/5</span></div>
+      <div class="sp-stat-label">Note moyenne</div>
+    </div>
+    <div class="sp-stat">
+      <div class="sp-stat-num">24<span>h</span></div>
+      <div class="sp-stat-label">Livraison express</div>
+    </div>
+  </div>
+
+  <!-- Categories -->
+  <section class="sp-categories">
+    <div class="sp-section-header sp-reveal">
+      <div class="sp-section-tag">Explorer</div>
+      <h2 class="sp-section-title">NOS <span>CATEGORIES</span></h2>
+    </div>
+    <div class="sp-cat-grid">
+      <div class="sp-cat-card sp-reveal">
+        <div class="sp-cat-bg sp-cat-bg-1"></div>
+        <div class="sp-cat-info">
+          <h3 class="sp-cat-name">Chaussures</h3>
+          <p class="sp-cat-count">124 articles</p>
+        </div>
+      </div>
+      <div class="sp-cat-card sp-reveal">
+        <div class="sp-cat-bg sp-cat-bg-2"></div>
+        <div class="sp-cat-info">
+          <h3 class="sp-cat-name">Vetements</h3>
+          <p class="sp-cat-count">218 articles</p>
+        </div>
+      </div>
+      <div class="sp-cat-card sp-reveal">
+        <div class="sp-cat-bg sp-cat-bg-3"></div>
+        <div class="sp-cat-info">
+          <h3 class="sp-cat-name">Accessoires</h3>
+          <p class="sp-cat-count">96 articles</p>
+        </div>
+      </div>
+      <div class="sp-cat-card sp-reveal">
+        <div class="sp-cat-bg sp-cat-bg-4"></div>
+        <div class="sp-cat-info">
+          <h3 class="sp-cat-name">Equipement</h3>
+          <p class="sp-cat-count">64 articles</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Products -->
+  <section class="sp-products">
+    <div class="sp-section-header sp-reveal">
+      <div class="sp-section-tag">Best sellers</div>
+      <h2 class="sp-section-title">PRODUITS <span>POPULAIRES</span></h2>
+    </div>
+
+    <div class="sp-products-filter sp-reveal">
+      <button class="sp-filter-btn active">Tous</button>
+      <button class="sp-filter-btn">Running</button>
+      <button class="sp-filter-btn">Training</button>
+      <button class="sp-filter-btn">Football</button>
+      <button class="sp-filter-btn">Basketball</button>
+    </div>
+
+    <div class="sp-products-grid">
+      <div class="sp-product sp-reveal">
+        <div class="sp-product-img">
+          <div class="sp-product-shape"></div>
+          <span class="sp-product-discount">-30%</span>
+        </div>
+        <div class="sp-product-info">
+          <div class="sp-product-brand">Velocity Pro</div>
+          <h3 class="sp-product-name">Ultra Runner X9</h3>
+          <div class="sp-product-price-row">
+            <span class="sp-product-price">129,99 &euro;</span>
+            <span class="sp-product-old-price">185,00 &euro;</span>
+          </div>
+          <button type="button" class="sp-add-btn">Ajouter au panier</button>
+        </div>
+      </div>
+
+      <div class="sp-product sp-reveal">
+        <div class="sp-product-img">
+          <div class="sp-product-shape"></div>
+        </div>
+        <div class="sp-product-info">
+          <div class="sp-product-brand">Velocity Core</div>
+          <h3 class="sp-product-name">Compression Tee Pro</h3>
+          <div class="sp-product-price-row">
+            <span class="sp-product-price">59,99 &euro;</span>
+          </div>
+          <button type="button" class="sp-add-btn">Ajouter au panier</button>
+        </div>
+      </div>
+
+      <div class="sp-product sp-reveal">
+        <div class="sp-product-img">
+          <div class="sp-product-shape"></div>
+          <span class="sp-product-discount">Nouveau</span>
+        </div>
+        <div class="sp-product-info">
+          <div class="sp-product-brand">Velocity Tech</div>
+          <h3 class="sp-product-name">Smart Watch V3</h3>
+          <div class="sp-product-price-row">
+            <span class="sp-product-price">249,00 &euro;</span>
+          </div>
+          <button type="button" class="sp-add-btn">Ajouter au panier</button>
+        </div>
+      </div>
+
+      <div class="sp-product sp-reveal">
+        <div class="sp-product-img">
+          <div class="sp-product-shape"></div>
+          <span class="sp-product-discount">-20%</span>
+        </div>
+        <div class="sp-product-info">
+          <div class="sp-product-brand">Velocity Air</div>
+          <h3 class="sp-product-name">Trail Blazer GTX</h3>
+          <div class="sp-product-price-row">
+            <span class="sp-product-price">159,99 &euro;</span>
+            <span class="sp-product-old-price">199,00 &euro;</span>
+          </div>
+          <button type="button" class="sp-add-btn">Ajouter au panier</button>
+        </div>
+      </div>
+
+      <div class="sp-product sp-reveal">
+        <div class="sp-product-img">
+          <div class="sp-product-shape"></div>
+        </div>
+        <div class="sp-product-info">
+          <div class="sp-product-brand">Velocity Flex</div>
+          <h3 class="sp-product-name">Training Short Elite</h3>
+          <div class="sp-product-price-row">
+            <span class="sp-product-price">44,99 &euro;</span>
+          </div>
+          <button type="button" class="sp-add-btn">Ajouter au panier</button>
+        </div>
+      </div>
+
+      <div class="sp-product sp-reveal">
+        <div class="sp-product-img">
+          <div class="sp-product-shape"></div>
+        </div>
+        <div class="sp-product-info">
+          <div class="sp-product-brand">Velocity Grip</div>
+          <h3 class="sp-product-name">Sac Sport Tactical</h3>
+          <div class="sp-product-price-row">
+            <span class="sp-product-price">89,00 &euro;</span>
+          </div>
+          <button type="button" class="sp-add-btn">Ajouter au panier</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="sp-cta sp-reveal">
+    <h2>REJOIGNEZ LE <span>MOUVEMENT</span></h2>
+    <p>Inscrivez-vous et recevez 15% sur votre premiere commande.</p>
+    <a href="#" class="sp-btn sp-btn-primary">S'inscrire maintenant</a>
+  </section>
+
+  <!-- Footer -->
+  <footer class="sp-footer">
+    Mockup par <span>Abdallah Chenaoui</span> — Projet Portfolio 2024
+  </footer>
+
+  <script>
+    const reveals = document.querySelectorAll('.sp-reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    reveals.forEach(el => observer.observe(el));
+
+    /* Filter buttons toggle */
+    document.querySelectorAll('.sp-filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.sp-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    /* ── Mini panier demo ── */
+    let cartCount = 0;
+
+    // Toast notification
+    function spToast(msg) {
+      let t = document.getElementById('sp-toast');
+      if (!t) {
+        t = document.createElement('div');
+        t.id = 'sp-toast';
+        t.style.cssText = [
+          'position:fixed','bottom:1.5rem','left:50%','transform:translateX(-50%) translateY(20px)',
+          'background:#0d0d1e','border:1px solid var(--neon)','color:var(--neon)',
+          'padding:.65rem 1.4rem','border-radius:100px','font-size:.8rem','font-weight:600',
+          'pointer-events:none','opacity:0','transition:all .3s','z-index:9999','white-space:nowrap'
+        ].join(';');
+        document.body.appendChild(t);
+      }
+      t.textContent = msg;
+      t.style.opacity = '1';
+      t.style.transform = 'translateX(-50%) translateY(0)';
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => {
+        t.style.opacity = '0';
+        t.style.transform = 'translateX(-50%) translateY(20px)';
+      }, 2500);
+    }
+
+    // Boutons "Ajouter au panier"
+    document.querySelectorAll('.sp-add-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        cartCount++;
+        const cartEl = document.querySelector('.sp-cart');
+        if (cartEl) {
+          cartEl.textContent = '';
+          // Reconstruire avec icône SVG + compteur
+          const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+          svg.setAttribute('viewBox','0 0 24 24');
+          svg.setAttribute('stroke-width','1.5');
+          svg.innerHTML = '<path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/>';
+          cartEl.appendChild(svg);
+          cartEl.appendChild(document.createTextNode(` Panier (${cartCount})`));
+        }
+        // Animation du bouton
+        btn.textContent = '✓ Ajouté !';
+        btn.style.background = 'var(--neon)';
+        btn.style.color = '#080812';
+        setTimeout(() => {
+          btn.textContent = 'Ajouter au panier';
+          btn.style.background = '';
+          btn.style.color = '';
+        }, 1500);
+        spToast('Produit ajouté au panier');
+      });
+    });
+
+    // Clic sur le panier header
+    document.querySelector('.sp-cart')?.addEventListener('click', () => {
+      if (cartCount === 0) {
+        spToast('Votre panier est vide');
+      } else {
+        spToast(`${cartCount} article${cartCount>1?'s':''} dans le panier`);
+      }
+    });
+
+    /* ── Toast "mockup statique" ── */
+    (() => {
+      const toastCSS = `
+        #mockup-toast {
+          position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+          background: rgba(10,10,25,0.92); border: 1px solid rgba(0,212,255,0.25);
+          color: #a0d8ef; font-size: 13px; font-family: sans-serif;
+          padding: 10px 18px; border-radius: 999px;
+          backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+          white-space: nowrap; z-index: 99999; pointer-events: none;
+          transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
+          opacity: 0;
+        }
+        #mockup-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+      `;
+      const style = document.createElement('style');
+      style.textContent = toastCSS;
+      document.head.appendChild(style);
+
+      const toast = document.createElement('div');
+      toast.id = 'mockup-toast';
+      toast.textContent = '⚡ Mockup statique — fonctionnalité non implémentée';
+      document.body.appendChild(toast);
+
+      let toastTimer;
+      document.addEventListener('click', e => {
+        const target = e.target.closest('button, a, [role="button"]');
+        /* Exclure : retour portfolio, panier (qui a déjà son propre toast) */
+        if (!target || target.closest('.back-btn') || target.closest('.sp-cart-btn') ||
+            target.href?.includes('index.html')) return;
+        clearTimeout(toastTimer);
+        toast.classList.add('show');
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 2800);
+      });
+    })();
+  </script>
+</body>
+</html>
