@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"><!-- viewport-fit=cover = safe-area iPhone notch -->
+  <title>UI/UX Showcase — Design System</title>
+  <meta name="description" content="Vitrine de compétences UI/UX : design system, palettes, typographies, composants réutilisables et micro-interactions.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://abd-chenaoui.github.io/projects/ui-ux/">
+  <meta property="og:title" content="UI/UX Showcase — Design System">
+  <meta property="og:description" content="Showcase de compétences en design d'interfaces : design system, composants et micro-interactions.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://abd-chenaoui.github.io/projects/ui-ux/">
+  <style>
+    /* ============================================
+       UI/UX Design Showcase
+       Theme: Dark with vibrant accent gradients
+       ============================================ */
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,200;0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400&display=swap');
+
+    :root {
+      --accent-1: #f9a8c9;
+      --accent-2: #6366f1;
+      --accent-3: #06b6d4;
+      --accent-4: #f59e0b;
+      --accent-5: #10b981;
+      --bg: #09090b;
+      --bg-card: #111113;
+      --bg-card-2: #18181b;
+      --border: rgba(255, 255, 255, 0.06);
+      --text: #e4e4e7;
+      --text-dim: rgba(228, 228, 231, 0.5);
+      --text-ghost: rgba(228, 228, 231, 0.25);
+      --font-mono: 'Space Mono', monospace;
+      --font-sans: 'DM Sans', sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* ======= BACK BUTTON ======= */
+    /* Accessibilité clavier — focus visible sur tous les éléments interactifs */
+    :focus-visible {
+      outline: 2px solid var(--accent-1);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+
+    .back-btn {
+      position: fixed; top: 1.5rem; left: 1.5rem; z-index: 1000;
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.75rem 1.2rem; /* 0.75rem × 2 ≈ 44px min — zone tactile WCAG */
+      min-height: 44px;
+      background: rgba(9, 9, 11, 0.8);
+      border: 1px solid rgba(249, 168, 201, 0.2);
+      border-radius: 100px;
+      color: var(--accent-1);
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      text-decoration: none;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s;
+    }
+    .back-btn:hover { background: rgba(249, 168, 201, 0.08); }
+    .back-btn svg { width: 14px; height: 14px; }
+
+    /* ======= CONTAINER ======= */
+    .ux-container { max-width: 1100px; margin: 0 auto; padding: 0 2rem; }
+
+    /* ======= HEADER ======= */
+    .ux-header {
+      padding: 8rem 0 4rem;
+      text-align: center;
+    }
+    .ux-header-tag {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--accent-1);
+      margin-bottom: 1rem;
+    }
+    .ux-header-title {
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .ux-header-title span {
+      background: linear-gradient(135deg, var(--accent-1), var(--accent-2), var(--accent-3));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .ux-header-desc {
+      font-size: 1.05rem; font-weight: 300;
+      color: var(--text-dim);
+      max-width: 550px; margin: 1rem auto 0;
+    }
+
+    /* ======= SECTION ======= */
+    .ux-section {
+      padding: 4rem 0;
+      border-top: 1px solid var(--border);
+    }
+    .ux-section-header {
+      display: flex; align-items: center; gap: 1rem;
+      margin-bottom: 3rem;
+    }
+    .ux-section-num {
+      font-family: var(--font-mono);
+      font-size: 0.7rem; color: var(--accent-1);
+      padding: 0.3rem 0.6rem;
+      border: 1px solid rgba(249, 168, 201, 0.2);
+      border-radius: 4px;
+    }
+    .ux-section-title {
+      font-size: 1.5rem; font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    /* ======= COLOR PALETTES ======= */
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1rem;
+    }
+    .palette-card {
+      border-radius: 12px; overflow: hidden;
+      border: 1px solid var(--border);
+      transition: transform 0.3s;
+    }
+    .palette-card:hover { transform: translateY(-4px); }
+    .palette-swatch {
+      height: 120px;
+    }
+    .palette-info {
+      padding: 1rem;
+      background: var(--bg-card);
+    }
+    .palette-name {
+      font-size: 0.85rem; font-weight: 500;
+    }
+    .palette-hex {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-dim); margin-top: 0.25rem;
+    }
+    .palette-use {
+      font-size: 0.65rem; font-weight: 300;
+      color: var(--text-ghost); margin-top: 0.5rem;
+      text-transform: uppercase; letter-spacing: 0.1em;
+    }
+
+    /* Named palettes */
+    .palette-themes {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    .palette-theme {
+      padding: 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--bg-card);
+    }
+    .palette-theme-name {
+      font-size: 0.9rem; font-weight: 500;
+      margin-bottom: 1rem;
+    }
+    .palette-theme-colors {
+      display: flex; gap: 0.5rem;
+    }
+    .palette-theme-dot {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--bg);
+      transition: transform 0.3s;
+    }
+    .palette-theme-dot:hover { transform: scale(1.2); }
+
+    /* ======= TYPOGRAPHY ======= */
+    .type-scale {
+      display: flex; flex-direction: column; gap: 1.5rem;
+    }
+    .type-row {
+      display: grid;
+      grid-template-columns: 100px 1fr;
+      gap: 2rem;
+      align-items: baseline;
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .type-meta {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-dim);
+    }
+    .type-meta span {
+      display: block; margin-top: 0.25rem;
+      color: var(--text-ghost);
+    }
+    .type-h1 { font-size: 3rem; font-weight: 700; letter-spacing: -0.02em; }
+    .type-h2 { font-size: 2.25rem; font-weight: 600; letter-spacing: -0.01em; }
+    .type-h3 { font-size: 1.5rem; font-weight: 600; }
+    .type-body { font-size: 1rem; font-weight: 400; color: var(--text-dim); }
+    .type-small { font-size: 0.875rem; font-weight: 300; color: var(--text-dim); }
+    .type-mono { font-family: var(--font-mono); font-size: 0.875rem; color: var(--accent-3); }
+
+    .font-pairing {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    .font-pair-card {
+      padding: 2rem;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--bg-card);
+    }
+    .font-pair-label {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--accent-2);
+      margin-bottom: 1rem;
+    }
+    .font-pair-display {
+      font-size: 2rem; font-weight: 600;
+      line-height: 1.2; margin-bottom: 0.75rem;
+    }
+    .font-pair-body {
+      font-size: 0.85rem; font-weight: 300;
+      color: var(--text-dim); line-height: 1.7;
+    }
+
+    /* ======= COMPONENTS ======= */
+    .comp-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    .comp-card {
+      padding: 2rem;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--bg-card);
+    }
+    .comp-label {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-ghost);
+      margin-bottom: 1.5rem;
+    }
+
+    /* Buttons component */
+    .comp-buttons { display: flex; flex-direction: column; gap: 0.75rem; }
+    .demo-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 0.7rem 1.5rem;
+      min-height: 44px; /* zone tactile WCAG sur mobile */
+      font-family: var(--font-sans);
+      font-size: 0.8rem; font-weight: 500;
+      border: none; border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .demo-btn-primary {
+      background: var(--accent-1);
+      color: white;
+    }
+    .demo-btn-primary:hover {
+      background: #ff8fbb;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(249, 168, 201, 0.3);
+    }
+    .demo-btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .demo-btn-secondary:hover {
+      border-color: var(--accent-2);
+      color: var(--accent-2);
+      background: rgba(99, 102, 241, 0.05);
+    }
+    .demo-btn-ghost {
+      background: transparent;
+      color: var(--accent-3);
+      padding: 0.5rem 0;
+    }
+    .demo-btn-ghost:hover { text-decoration: underline; }
+
+    /* Input component */
+    .comp-inputs { display: flex; flex-direction: column; gap: 0.75rem; }
+    .demo-input {
+      padding: 0.7rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      color: var(--text);
+      outline: none;
+      transition: all 0.3s;
+    }
+    .demo-input:focus {
+      border-color: var(--accent-1);
+      box-shadow: 0 0 0 3px rgba(249, 168, 201, 0.1);
+    }
+    .demo-input::placeholder { color: var(--text-ghost); }
+
+    /* Badge component */
+    .comp-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .demo-badge {
+      padding: 0.3rem 0.8rem;
+      border-radius: 100px;
+      font-size: 0.7rem; font-weight: 500;
+    }
+    .badge-pink { background: rgba(249, 168, 201, 0.15); color: var(--accent-1); }
+    .badge-purple { background: rgba(99, 102, 241, 0.15); color: var(--accent-2); }
+    .badge-cyan { background: rgba(6, 182, 212, 0.15); color: var(--accent-3); }
+    .badge-amber { background: rgba(245, 158, 11, 0.15); color: var(--accent-4); }
+    .badge-green { background: rgba(16, 185, 129, 0.15); color: var(--accent-5); }
+
+    /* Toggle component */
+    .comp-toggles { display: flex; flex-direction: column; gap: 1rem; }
+    .demo-toggle-row {
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .demo-toggle {
+      width: 44px; height: 24px;
+      border-radius: 12px;
+      background: var(--border);
+      position: relative;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .demo-toggle.active { background: var(--accent-1); }
+    .demo-toggle::after {
+      content: '';
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: white;
+      transition: transform 0.3s;
+    }
+    .demo-toggle.active::after { transform: translateX(20px); }
+    .demo-toggle-label {
+      font-size: 0.8rem; color: var(--text-dim);
+    }
+
+    /* Progress component */
+    .comp-progress { display: flex; flex-direction: column; gap: 1rem; }
+    .demo-progress-label {
+      display: flex; justify-content: space-between;
+      font-size: 0.75rem;
+    }
+    .demo-progress-label span { color: var(--text-ghost); }
+    .demo-progress-bar {
+      width: 100%; height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.05);
+      overflow: hidden;
+    }
+    .demo-progress-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Card component */
+    .demo-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .demo-card-img {
+      height: 100px;
+      background: linear-gradient(135deg, var(--accent-2), var(--accent-3));
+    }
+    .demo-card-body {
+      padding: 1rem;
+    }
+    .demo-card-title {
+      font-size: 0.9rem; font-weight: 600;
+    }
+    .demo-card-text {
+      font-size: 0.75rem; color: var(--text-dim);
+      margin-top: 0.25rem;
+    }
+
+    /* ======= MICRO-INTERACTIONS ======= */
+    .micro-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+    }
+    .micro-card {
+      aspect-ratio: 1;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--bg-card);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .micro-card:hover {
+      border-color: rgba(249, 168, 201, 0.2);
+      background: var(--bg-card-2);
+    }
+    .micro-label {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      color: var(--text-ghost);
+      letter-spacing: 0.1em; text-transform: uppercase;
+    }
+
+    /* Hover scale */
+    .micro-scale-box {
+      width: 40px; height: 40px;
+      border-radius: 8px;
+      background: var(--accent-1);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .micro-card:hover .micro-scale-box { transform: scale(1.3); }
+
+    /* Hover rotate */
+    .micro-rotate-box {
+      width: 40px; height: 40px;
+      border: 2px solid var(--accent-2);
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .micro-card:hover .micro-rotate-box { transform: rotate(180deg); }
+
+    /* Hover glow */
+    .micro-glow-box {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--accent-3);
+      transition: box-shadow 0.3s;
+    }
+    .micro-card:hover .micro-glow-box {
+      box-shadow: 0 0 30px rgba(6, 182, 212, 0.5), 0 0 60px rgba(6, 182, 212, 0.2);
+    }
+
+    /* Hover morph */
+    .micro-morph-box {
+      width: 40px; height: 40px;
+      background: var(--accent-4);
+      border-radius: 8px;
+      transition: border-radius 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .micro-card:hover .micro-morph-box { border-radius: 50%; }
+
+    /* ======= SPACING SYSTEM ======= */
+    .spacing-demo {
+      display: flex; flex-direction: column; gap: 1rem;
+      margin-top: 2rem;
+    }
+    .spacing-row {
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .spacing-label {
+      width: 80px;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-dim);
+    }
+    .spacing-bar {
+      height: 24px;
+      max-width: 100%; /* empêche les barres larges (384px, 512px) de déborder sur mobile */
+      background: linear-gradient(90deg, rgba(249, 168, 201, 0.15), rgba(99, 102, 241, 0.15));
+      border-radius: 4px;
+      border: 1px solid rgba(249, 168, 201, 0.1);
+      transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .spacing-val {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      color: var(--text-ghost);
+    }
+
+    /* ======= FOOTER ======= */
+    .ux-footer {
+      padding: 3rem 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 0.7rem;
+      color: var(--text-ghost);
+    }
+    .ux-footer span { color: var(--accent-1); }
+
+    /* ======= REVEAL ======= */
+    .ux-reveal {
+      opacity: 0; transform: translateY(20px);
+      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .ux-reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ======= RESPONSIVE ======= */
+    @media (max-width: 1024px) {
+      .palette-grid { grid-template-columns: repeat(3, 1fr); }
+      .comp-grid { grid-template-columns: repeat(2, 1fr); }
+      .micro-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .palette-grid { grid-template-columns: repeat(2, 1fr); }
+      .palette-themes { grid-template-columns: 1fr; }
+      .font-pairing { grid-template-columns: 1fr; }
+      .comp-grid { grid-template-columns: 1fr; }
+      .micro-grid { grid-template-columns: 1fr 1fr; }
+      .type-row { grid-template-columns: 1fr; gap: 0.5rem; }
+      /* Réduire le padding des sections sur mobile — 4rem = 64px trop grand sur petit écran */
+      .ux-header { padding: 4rem 0 2rem; }
+      .ux-section { padding: 2rem 0; }
+      .ux-section-title { font-size: clamp(1.1rem, 3vw, 1.5rem); } /* Typographie fluide */
+    }
+    @media (max-width: 480px) {
+      /* 1 colonne sur très petit mobile — 2 colonnes trop serrées sous 480px */
+      .palette-grid { grid-template-columns: 1fr; }
+      .micro-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <a href="../../index.html" class="back-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M19 12H5M12 19l-7-7 7-7"/>
+    </svg>
+    Portfolio
+  </a>
+
+  <!-- Header -->
+  <header class="ux-header">
+    <div class="ux-container">
+      <div class="ux-header-tag">// design_system.config</div>
+      <h1 class="ux-header-title">UI/UX <span>Showcase</span></h1>
+      <p class="ux-header-desc">
+        Demonstration de competences en design d'interfaces :
+        palettes, typographie, composants et micro-interactions.
+      </p>
+    </div>
+  </header>
+
+  <main class="ux-container">
+
+    <!-- COLOR PALETTES -->
+    <section class="ux-section ux-reveal">
+      <div class="ux-section-header">
+        <span class="ux-section-num">01</span>
+        <h2 class="ux-section-title">Palettes de couleurs</h2>
+      </div>
+
+      <div class="palette-grid">
+        <div class="palette-card">
+          <div class="palette-swatch" style="background: #f9a8c9;"></div>
+          <div class="palette-info">
+            <div class="palette-name">Sakura Pink</div>
+            <div class="palette-hex">#f9a8c9</div>
+            <div class="palette-use">Accent primaire</div>
+          </div>
+        </div>
+        <div class="palette-card">
+          <div class="palette-swatch" style="background: #6366f1;"></div>
+          <div class="palette-info">
+            <div class="palette-name">Indigo</div>
+            <div class="palette-hex">#6366f1</div>
+            <div class="palette-use">Accent secondaire</div>
+          </div>
+        </div>
+        <div class="palette-card">
+          <div class="palette-swatch" style="background: #06b6d4;"></div>
+          <div class="palette-info">
+            <div class="palette-name">Cyan</div>
+            <div class="palette-hex">#06b6d4</div>
+            <div class="palette-use">Info / liens</div>
+          </div>
+        </div>
+        <div class="palette-card">
+          <div class="palette-swatch" style="background: #f59e0b;"></div>
+          <div class="palette-info">
+            <div class="palette-name">Amber</div>
+            <div class="palette-hex">#f59e0b</div>
+            <div class="palette-use">Warning</div>
+          </div>
+        </div>
+        <div class="palette-card">
+          <div class="palette-swatch" style="background: #10b981;"></div>
+          <div class="palette-info">
+            <div class="palette-name">Emerald</div>
+            <div class="palette-hex">#10b981</div>
+            <div class="palette-use">Success</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="palette-themes ux-reveal">
+        <div class="palette-theme">
+          <div class="palette-theme-name">Theme Sakura</div>
+          <div class="palette-theme-colors">
+            <div class="palette-theme-dot" style="background: #080810;"></div>
+            <div class="palette-theme-dot" style="background: #f9a8c9;"></div>
+            <div class="palette-theme-dot" style="background: #e86ba0;"></div>
+            <div class="palette-theme-dot" style="background: #d4af37;"></div>
+            <div class="palette-theme-dot" style="background: #f0e6ef;"></div>
+          </div>
+        </div>
+        <div class="palette-theme">
+          <div class="palette-theme-name">Theme Gotham</div>
+          <div class="palette-theme-colors">
+            <div class="palette-theme-dot" style="background: #0a0a0a;"></div>
+            <div class="palette-theme-dot" style="background: #1a1a2e;"></div>
+            <div class="palette-theme-dot" style="background: #ffc107;"></div>
+            <div class="palette-theme-dot" style="background: #ffab00;"></div>
+            <div class="palette-theme-dot" style="background: #e8e6e3;"></div>
+          </div>
+        </div>
+        <div class="palette-theme">
+          <div class="palette-theme-name">Theme Luxe</div>
+          <div class="palette-theme-colors">
+            <div class="palette-theme-dot" style="background: #0a0a0a;"></div>
+            <div class="palette-theme-dot" style="background: #c9a84c;"></div>
+            <div class="palette-theme-dot" style="background: #e8d5a3;"></div>
+            <div class="palette-theme-dot" style="background: #1e1e1e;"></div>
+            <div class="palette-theme-dot" style="background: #f5f0eb;"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TYPOGRAPHY -->
+    <section class="ux-section ux-reveal">
+      <div class="ux-section-header">
+        <span class="ux-section-num">02</span>
+        <h2 class="ux-section-title">Echelle typographique</h2>
+      </div>
+
+      <div class="type-scale">
+        <div class="type-row">
+          <div class="type-meta">H1<span>48px / 700</span></div>
+          <div class="type-h1">Titre Principal</div>
+        </div>
+        <div class="type-row">
+          <div class="type-meta">H2<span>36px / 600</span></div>
+          <div class="type-h2">Sous-titre Section</div>
+        </div>
+        <div class="type-row">
+          <div class="type-meta">H3<span>24px / 600</span></div>
+          <div class="type-h3">Titre de carte ou element</div>
+        </div>
+        <div class="type-row">
+          <div class="type-meta">Body<span>16px / 400</span></div>
+          <div class="type-body">Le texte principal utilise une graisse reguliere avec un interlignage genereux pour maximiser la lisibilite sur fond sombre.</div>
+        </div>
+        <div class="type-row">
+          <div class="type-meta">Small<span>14px / 300</span></div>
+          <div class="type-small">Texte secondaire, meta-informations, labels et annotations complementaires.</div>
+        </div>
+        <div class="type-row">
+          <div class="type-meta">Mono<span>14px / 400</span></div>
+          <div class="type-mono">const design = { quality: "exceptional" };</div>
+        </div>
+      </div>
+
+      <div class="font-pairing ux-reveal">
+        <div class="font-pair-card">
+          <div class="font-pair-label">Paire A — Display + Body</div>
+          <div class="font-pair-display" style="font-family: 'Cormorant Garamond', serif;">L'elegance du serif</div>
+          <div class="font-pair-body">Combine avec un sans-serif epure pour le corps de texte, cette paire cree un contraste raffine parfait pour les sites premium.</div>
+        </div>
+        <div class="font-pair-card">
+          <div class="font-pair-label">Paire B — Mono + Sans</div>
+          <div class="font-pair-display" style="font-family: 'Space Mono', monospace; font-size: 1.5rem;">Code meets design</div>
+          <div class="font-pair-body">L'association monospace/sans-serif apporte une touche technique et moderne, ideale pour les portfolios de developpeurs.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMPONENTS -->
+    <section class="ux-section ux-reveal">
+      <div class="ux-section-header">
+        <span class="ux-section-num">03</span>
+        <h2 class="ux-section-title">Composants UI</h2>
+      </div>
+
+      <div class="comp-grid">
+        <!-- Buttons -->
+        <div class="comp-card">
+          <div class="comp-label">Boutons</div>
+          <div class="comp-buttons">
+            <button class="demo-btn demo-btn-primary">Bouton primaire</button>
+            <button class="demo-btn demo-btn-secondary">Bouton secondaire</button>
+            <button class="demo-btn demo-btn-ghost">Lien texte &rarr;</button>
+          </div>
+        </div>
+
+        <!-- Inputs -->
+        <div class="comp-card">
+          <div class="comp-label">Champs de saisie</div>
+          <div class="comp-inputs">
+            <input class="demo-input" type="text" placeholder="Votre nom...">
+            <input class="demo-input" type="email" placeholder="email@example.com">
+          </div>
+        </div>
+
+        <!-- Badges -->
+        <div class="comp-card">
+          <div class="comp-label">Badges / Tags</div>
+          <div class="comp-badges">
+            <span class="demo-badge badge-pink">Design</span>
+            <span class="demo-badge badge-purple">Frontend</span>
+            <span class="demo-badge badge-cyan">React</span>
+            <span class="demo-badge badge-amber">Nouveau</span>
+            <span class="demo-badge badge-green">En ligne</span>
+          </div>
+        </div>
+
+        <!-- Toggles -->
+        <div class="comp-card">
+          <div class="comp-label">Toggles</div>
+          <div class="comp-toggles">
+            <div class="demo-toggle-row">
+              <div class="demo-toggle active" onclick="this.classList.toggle('active')"></div>
+              <span class="demo-toggle-label">Mode sombre</span>
+            </div>
+            <div class="demo-toggle-row">
+              <div class="demo-toggle" onclick="this.classList.toggle('active')"></div>
+              <span class="demo-toggle-label">Notifications</span>
+            </div>
+            <div class="demo-toggle-row">
+              <div class="demo-toggle active" onclick="this.classList.toggle('active')"></div>
+              <span class="demo-toggle-label">Animations</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="comp-card">
+          <div class="comp-label">Barres de progression</div>
+          <div class="comp-progress">
+            <div>
+              <div class="demo-progress-label">HTML/CSS <span>95%</span></div>
+              <div class="demo-progress-bar"><div class="demo-progress-fill" style="width: 95%; background: var(--accent-1);"></div></div>
+            </div>
+            <div>
+              <div class="demo-progress-label">JavaScript <span>85%</span></div>
+              <div class="demo-progress-bar"><div class="demo-progress-fill" style="width: 85%; background: var(--accent-2);"></div></div>
+            </div>
+            <div>
+              <div class="demo-progress-label">React <span>75%</span></div>
+              <div class="demo-progress-bar"><div class="demo-progress-fill" style="width: 75%; background: var(--accent-3);"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card -->
+        <div class="comp-card">
+          <div class="comp-label">Carte</div>
+          <div class="demo-card">
+            <div class="demo-card-img"></div>
+            <div class="demo-card-body">
+              <div class="demo-card-title">Titre du projet</div>
+              <div class="demo-card-text">Description courte du contenu de la carte avec quelques details.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MICRO-INTERACTIONS -->
+    <section class="ux-section ux-reveal">
+      <div class="ux-section-header">
+        <span class="ux-section-num">04</span>
+        <h2 class="ux-section-title">Micro-interactions</h2>
+      </div>
+
+      <div class="micro-grid">
+        <div class="micro-card">
+          <div class="micro-scale-box"></div>
+          <div class="micro-label">Scale</div>
+        </div>
+        <div class="micro-card">
+          <div class="micro-rotate-box"></div>
+          <div class="micro-label">Rotate</div>
+        </div>
+        <div class="micro-card">
+          <div class="micro-glow-box"></div>
+          <div class="micro-label">Glow</div>
+        </div>
+        <div class="micro-card">
+          <div class="micro-morph-box"></div>
+          <div class="micro-label">Morph</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SPACING SYSTEM -->
+    <section class="ux-section ux-reveal">
+      <div class="ux-section-header">
+        <span class="ux-section-num">05</span>
+        <h2 class="ux-section-title">Systeme d'espacement</h2>
+      </div>
+
+      <div class="spacing-demo">
+        <div class="spacing-row">
+          <div class="spacing-label">xs</div>
+          <div class="spacing-bar" style="width: 32px;"></div>
+          <div class="spacing-val">4px</div>
+        </div>
+        <div class="spacing-row">
+          <div class="spacing-label">sm</div>
+          <div class="spacing-bar" style="width: 64px;"></div>
+          <div class="spacing-val">8px</div>
+        </div>
+        <div class="spacing-row">
+          <div class="spacing-label">md</div>
+          <div class="spacing-bar" style="width: 128px;"></div>
+          <div class="spacing-val">16px</div>
+        </div>
+        <div class="spacing-row">
+          <div class="spacing-label">lg</div>
+          <div class="spacing-bar" style="width: 192px;"></div>
+          <div class="spacing-val">24px</div>
+        </div>
+        <div class="spacing-row">
+          <div class="spacing-label">xl</div>
+          <div class="spacing-bar" style="width: 256px;"></div>
+          <div class="spacing-val">32px</div>
+        </div>
+        <div class="spacing-row">
+          <div class="spacing-label">2xl</div>
+          <div class="spacing-bar" style="width: 384px;"></div>
+          <div class="spacing-val">48px</div>
+        </div>
+        <div class="spacing-row">
+          <div class="spacing-label">3xl</div>
+          <div class="spacing-bar" style="width: 512px;"></div>
+          <div class="spacing-val">64px</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="ux-footer">
+    <div class="ux-container">
+      Design System par <span>Abdallah Chenaoui</span> — Portfolio 2024
+    </div>
+  </footer>
+
+  <script>
+    /* Scroll reveal */
+    const reveals = document.querySelectorAll('.ux-reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    reveals.forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>
