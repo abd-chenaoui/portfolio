@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maison de luxe — Joaillerie de Luxe</title>
+  <meta name="description" content="Boutique en ligne haut de gamme pour une marque de joaillerie. Design épuré, accents or et expérience d'achat premium.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://abd-chenaoui.github.io/projects/luxury-store/">
+  <meta property="og:title" content="Maison de Luxe — Joaillerie">
+  <meta property="og:description" content="E-commerce luxe : joaillerie premium, design épuré et animations sophistiquées.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://abd-chenaoui.github.io/projects/luxury-store/">
+  <style>
+    /* ============================================
+       Maison de luxe — Luxury E-Commerce Mockup
+       Theme: Or, noir, blanc — elegance absolue
+       ============================================ */
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Montserrat:wght@200;300;400;500&display=swap');
+
+    :root {
+      --gold: #c9a84c;
+      --gold-light: #e8d5a3;
+      --gold-dark: #8a6d2b;
+      --black: #0a0a0a;
+      --dark: #141414;
+      --gray: #1e1e1e;
+      --white: #f5f0eb;
+      --text: #e8e3dc;
+      --text-dim: rgba(232, 227, 220, 0.5);
+      --font-display: 'Cormorant Garamond', serif;
+      --font-body: 'Montserrat', sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--black);
+      color: var(--text);
+      font-family: var(--font-body);
+      overflow-x: hidden;
+    }
+
+    /* Noise */
+    body::before {
+      content: '';
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 10000;
+    }
+
+    /* ======= BACK BUTTON ======= */
+    .back-btn {
+      position: fixed; top: 1.5rem; left: 1.5rem; z-index: 1000;
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.75rem 1.2rem; /* min-height 44px — zone tactile WCAG */
+      min-height: 44px;
+      background: rgba(10, 10, 10, 0.8);
+      border: 1px solid rgba(201, 168, 76, 0.2);
+      border-radius: 100px;
+      color: var(--gold);
+      font-family: var(--font-body);
+      font-size: 0.7rem; font-weight: 400;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      text-decoration: none;
+      backdrop-filter: blur(10px);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .back-btn:hover { background: rgba(201, 168, 76, 0.1); border-color: var(--gold); }
+    .back-btn svg { width: 14px; height: 14px; }
+
+    /* ======= TOPBAR ======= */
+    .topbar {
+      padding: 0.6rem 3rem;
+      background: var(--dark);
+      border-bottom: 1px solid rgba(201, 168, 76, 0.08);
+      display: flex; justify-content: center;
+      font-size: 0.65rem; font-weight: 300;
+      letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    /* ======= NAVBAR ======= */
+    .navbar {
+      padding: 1.5rem 3rem;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid rgba(201, 168, 76, 0.06);
+    }
+    .logo {
+      font-family: var(--font-display);
+      font-size: 1.8rem; font-weight: 300;
+      letter-spacing: 0.15em;
+      color: var(--gold);
+    }
+    .logo span { font-style: italic; color: var(--text); }
+    .nav-links {
+      display: flex; gap: 2rem; list-style: none;
+    }
+    .nav-links a {
+      font-size: 0.7rem; font-weight: 300;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-dim); text-decoration: none;
+      transition: color 0.3s;
+    }
+    .nav-links a:hover { color: var(--gold); }
+    .nav-icons {
+      display: flex; gap: 1.5rem; align-items: center;
+    }
+    .nav-icons svg {
+      width: 18px; height: 18px;
+      stroke: var(--text-dim);
+      fill: none; stroke-width: 1.5;
+      cursor: pointer;
+      transition: stroke 0.3s;
+    }
+    .nav-icons svg:hover { stroke: var(--gold); }
+
+    /* ======= HERO ======= */
+    .hero {
+      position: relative; height: 85vh; height: 85dvh; /* dvh = s'adapte à la barre d'adresse iOS Safari */
+      display: flex; align-items: center;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background:
+        linear-gradient(135deg, rgba(10,10,10,0.85) 0%, rgba(20,20,20,0.7) 50%, rgba(10,10,10,0.85) 100%),
+        url('https://images.pexels.com/photos/15491851/pexels-photo-15491851.jpeg?auto=compress&cs=tinysrgb&w=1200&fit=crop') center/cover no-repeat;
+    }
+    /* Decorative circle (watch/jewelry shape) */
+    .hero-circle {
+      position: absolute; right: 15%; top: 50%;
+      transform: translateY(-50%);
+      width: 350px; height: 350px;
+      border: 1px solid rgba(201, 168, 76, 0.15);
+      border-radius: 50%;
+      animation: heroCirclePulse 6s ease-in-out infinite;
+    }
+    .hero-circle::before {
+      content: '';
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 280px; height: 280px;
+      border: 1px solid rgba(201, 168, 76, 0.08);
+      border-radius: 50%;
+    }
+    .hero-circle::after {
+      content: '';
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(201, 168, 76, 0.06), transparent 70%);
+      border-radius: 50%;
+    }
+    @keyframes heroCirclePulse {
+      0%, 100% { transform: translateY(-50%) scale(1); opacity: 0.8; }
+      50% { transform: translateY(-50%) scale(1.05); opacity: 1; }
+    }
+
+    /* Diamond shape inside */
+    .hero-diamond {
+      position: absolute; right: calc(15% + 145px); top: calc(50% - 30px);
+      width: 60px; height: 60px;
+      border: 1px solid rgba(201, 168, 76, 0.25);
+      transform: rotate(45deg);
+      animation: float 5s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: rotate(45deg) translateY(0); }
+      50% { transform: rotate(45deg) translateY(-10px); }
+    }
+
+    .hero-content {
+      position: relative; z-index: 2;
+      padding: 0 3rem;
+      max-width: 600px;
+    }
+    .hero-tag {
+      font-size: 0.7rem; font-weight: 300;
+      letter-spacing: 0.4em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 1.5rem;
+    }
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(3rem, 5vw, 4.5rem);
+      font-weight: 300; line-height: 1.1;
+      letter-spacing: 0.02em;
+    }
+    .hero-title em { font-style: italic; color: var(--gold); }
+    .hero-desc {
+      font-size: 0.9rem; font-weight: 200;
+      color: var(--text-dim); line-height: 1.8;
+      margin-top: 1.5rem; max-width: 400px;
+    }
+    .hero-btn {
+      display: inline-flex; align-items: center; gap: 0.75rem;
+      margin-top: 2.5rem; padding: 1rem 2.5rem;
+      border: 1px solid var(--gold);
+      font-family: var(--font-body);
+      font-size: 0.7rem; font-weight: 400;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--gold); text-decoration: none;
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .hero-btn:hover {
+      background: var(--gold); color: var(--black);
+    }
+
+    /* ======= MARQUEE ======= */
+    .marquee {
+      padding: 1.2rem 0;
+      border-top: 1px solid rgba(201, 168, 76, 0.06);
+      border-bottom: 1px solid rgba(201, 168, 76, 0.06);
+      overflow: hidden; white-space: nowrap;
+    }
+    .marquee-track {
+      display: flex; gap: 3rem;
+      animation: marqueeScroll 30s linear infinite;
+    }
+    .marquee-item {
+      font-family: var(--font-display);
+      font-size: 0.85rem; font-weight: 300;
+      letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--text-dim); flex-shrink: 0;
+    }
+    .marquee-dot {
+      color: var(--gold); margin: 0 1rem;
+    }
+    @keyframes marqueeScroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    /* ======= CATEGORIES ======= */
+    .categories {
+      padding: 6rem 3rem;
+    }
+    .section-header {
+      text-align: center; margin-bottom: 4rem;
+    }
+    .section-tag {
+      font-size: 0.65rem; font-weight: 300;
+      letter-spacing: 0.4em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 0.75rem;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 300; letter-spacing: 0.05em;
+    }
+    .section-line {
+      width: 30px; height: 1px;
+      background: var(--gold);
+      margin: 1rem auto 0;
+    }
+
+    .cat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      max-width: 1100px; margin: 0 auto;
+    }
+    .cat-card {
+      position: relative; height: 400px;
+      overflow: hidden;
+      border: 1px solid rgba(201, 168, 76, 0.06);
+      cursor: pointer;
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .cat-card:hover { border-color: rgba(201, 168, 76, 0.2); }
+    .cat-card:hover .cat-bg { transform: scale(1.05); }
+
+    .cat-bg {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .cat-bg-1 {
+      background:
+        linear-gradient(to top, rgba(10,10,10,0.85), rgba(20,20,20,0.5)),
+        url('https://images.pexels.com/photos/1395306/pexels-photo-1395306.jpeg?auto=compress&cs=tinysrgb&w=500&fit=crop') center/cover no-repeat;
+    }
+    .cat-bg-2 {
+      background:
+        linear-gradient(to top, rgba(10,10,10,0.85), rgba(30,30,30,0.5)),
+        url('https://images.pexels.com/photos/3266700/pexels-photo-3266700.jpeg?auto=compress&cs=tinysrgb&w=500&fit=crop') center/cover no-repeat;
+    }
+    .cat-bg-3 {
+      background:
+        linear-gradient(to top, rgba(10,10,10,0.85), rgba(26,24,18,0.5)),
+        url('https://images.pexels.com/photos/325845/pexels-photo-325845.jpeg?auto=compress&cs=tinysrgb&w=500&fit=crop') center/cover no-repeat;
+    }
+
+    /* Decorative shapes */
+    .cat-shape {
+      position: absolute; top: 30%; left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .shape-ring {
+      width: 100px; height: 100px;
+      border: 1.5px solid rgba(201, 168, 76, 0.2);
+      border-radius: 50%;
+    }
+    .shape-ring::after {
+      content: '';
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 12px; height: 12px;
+      background: radial-gradient(circle, var(--gold), transparent);
+      border-radius: 50%;
+    }
+    .shape-pendant {
+      width: 2px; height: 80px;
+      background: linear-gradient(to bottom, var(--gold-light), transparent);
+      margin: 0 auto;
+    }
+    .shape-pendant::after {
+      content: '';
+      position: absolute; bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 20px; height: 20px;
+      border: 1.5px solid rgba(201, 168, 76, 0.25);
+      border-radius: 50%;
+    }
+    .shape-watch {
+      width: 80px; height: 80px;
+      border: 1.5px solid rgba(201, 168, 76, 0.2);
+      border-radius: 50%;
+      position: relative;
+    }
+    .shape-watch::before {
+      content: '';
+      position: absolute; top: -20px; left: 50%;
+      transform: translateX(-50%);
+      width: 30px; height: 20px;
+      border: 1.5px solid rgba(201, 168, 76, 0.15);
+      border-radius: 5px 5px 0 0;
+      border-bottom: none;
+    }
+    .shape-watch::after {
+      content: '';
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 3px; height: 25px;
+      background: var(--gold);
+      transform-origin: bottom center;
+      animation: watchHand 4s linear infinite;
+    }
+    @keyframes watchHand {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    .cat-info {
+      position: absolute; bottom: 0; left: 0;
+      width: 100%; padding: 2rem;
+      background: linear-gradient(to top, rgba(10, 10, 10, 0.95), transparent);
+    }
+    .cat-name {
+      font-family: var(--font-display);
+      font-size: 1.5rem; font-weight: 300;
+      letter-spacing: 0.1em;
+    }
+    .cat-count {
+      font-size: 0.7rem; font-weight: 300;
+      color: var(--gold);
+      letter-spacing: 0.15em; text-transform: uppercase;
+      margin-top: 0.5rem;
+    }
+
+    /* ======= PRODUCTS ======= */
+    .products {
+      padding: 6rem 3rem;
+      background: var(--dark);
+    }
+    /* Carousel horizontal avec scroll snap — ultra fluide */
+    .products-grid {
+      display: flex;
+      gap: 1.5rem;
+      overflow-x: auto;
+      overflow-y: visible;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding: 0.5rem 0.5rem 1.5rem;
+      max-width: 100%;
+      cursor: grab;
+    }
+    .products-grid::-webkit-scrollbar { display: none; }
+    .products-grid:active { cursor: grabbing; }
+
+    .product-card {
+      flex: 0 0 240px;
+      scroll-snap-align: start;
+      cursor: pointer;
+      transition: transform 0.4s cubic-bezier(0.16,1,0.3,1),
+                  box-shadow 0.4s ease;
+    }
+    .product-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.4), 0 0 30px rgba(201,168,76,0.1);
+    }
+
+    .product-img {
+      position: relative; aspect-ratio: 3/4;
+      background: var(--gray);
+      border: 1px solid rgba(201, 168, 76, 0.05);
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .product-visual {
+      width: 60px; height: 60px;
+      border: 1.5px solid rgba(201, 168, 76, 0.15);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .product-visual::after {
+      content: '';
+      width: 8px; height: 8px;
+      background: var(--gold);
+      border-radius: 50%;
+    }
+    .product-visual { display: none; }
+    .product-card:nth-child(1) .product-img { background: linear-gradient(to top, rgba(30,30,30,0.7), rgba(30,30,30,0.3)), url('https://images.pexels.com/photos/2735981/pexels-photo-2735981.jpeg?auto=compress&cs=tinysrgb&w=400&fit=crop') center/cover no-repeat; }
+    .product-card:nth-child(2) .product-img { background: linear-gradient(to top, rgba(30,30,30,0.7), rgba(30,30,30,0.3)), url('https://images.pexels.com/photos/1616096/pexels-photo-1616096.jpeg?auto=compress&cs=tinysrgb&w=400&fit=crop') center/cover no-repeat; }
+    .product-card:nth-child(3) .product-img { background: linear-gradient(to top, rgba(30,30,30,0.7), rgba(30,30,30,0.3)), url('https://images.pexels.com/photos/2219195/pexels-photo-2219195.jpeg?auto=compress&cs=tinysrgb&w=400&fit=crop') center/cover no-repeat; }
+    .product-card:nth-child(4) .product-img { background: linear-gradient(to top, rgba(30,30,30,0.7), rgba(30,30,30,0.3)), url('https://images.pexels.com/photos/445986/pexels-photo-445986.jpeg?auto=compress&cs=tinysrgb&w=400&fit=crop') center/cover no-repeat; }
+    .product-badge {
+      position: absolute; top: 1rem; left: 1rem;
+      padding: 0.3rem 0.8rem;
+      background: var(--gold);
+      font-size: 0.6rem; font-weight: 500;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--black);
+    }
+    .product-name {
+      font-family: var(--font-display);
+      font-size: 1.1rem; font-weight: 400;
+      margin-top: 1rem;
+    }
+    .product-subtitle {
+      font-size: 0.75rem; font-weight: 200;
+      color: var(--text-dim); margin-top: 0.25rem;
+    }
+    .product-price {
+      font-family: var(--font-display);
+      font-size: 1rem; font-weight: 400;
+      color: var(--gold); margin-top: 0.5rem;
+    }
+
+    /* ======= BANNER ======= */
+    .banner {
+      padding: 8rem 3rem;
+      text-align: center;
+      position: relative;
+      background:
+        radial-gradient(ellipse at 50% 50%, rgba(201, 168, 76, 0.05), transparent 50%),
+        var(--black);
+    }
+    .banner-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 300; font-style: italic;
+      letter-spacing: 0.05em;
+      max-width: 600px; margin: 0 auto;
+    }
+    .banner-title span { color: var(--gold); }
+    .banner-desc {
+      font-size: 0.85rem; font-weight: 200;
+      color: var(--text-dim); max-width: 400px;
+      margin: 1.5rem auto 0; line-height: 1.8;
+    }
+
+    /* ======= FOOTER ======= */
+    .lux-footer {
+      padding: 4rem 3rem 2rem;
+      border-top: 1px solid rgba(201, 168, 76, 0.06);
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem; max-width: 1100px; margin: 0 auto;
+    }
+    .footer-brand {
+      font-family: var(--font-display);
+      font-size: 1.5rem; font-weight: 300;
+      color: var(--gold);
+      letter-spacing: 0.15em;
+    }
+    .footer-brand-text {
+      font-size: 0.8rem; font-weight: 200;
+      color: var(--text-dim); line-height: 1.8;
+      margin-top: 1rem; max-width: 250px;
+    }
+    .footer-col h4 {
+      font-family: var(--font-body);
+      font-size: 0.65rem; font-weight: 400;
+      letter-spacing: 0.25em; text-transform: uppercase;
+      color: var(--text); margin-bottom: 1.5rem;
+    }
+    .footer-col a {
+      display: block;
+      font-size: 0.8rem; font-weight: 200;
+      color: var(--text-dim); text-decoration: none;
+      margin-bottom: 0.75rem;
+      transition: color 0.3s;
+    }
+    .footer-col a:hover { color: var(--gold); }
+
+    .footer-bottom {
+      text-align: center;
+      padding-top: 3rem; margin-top: 3rem;
+      border-top: 1px solid rgba(201, 168, 76, 0.06);
+      font-size: 0.7rem; font-weight: 200;
+      color: var(--text-dim);
+    }
+    .footer-bottom span { color: var(--gold); }
+
+    /* ======= REVEAL ======= */
+    .lux-reveal {
+      opacity: 0; transform: translateY(30px);
+      transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .lux-reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ======= RESPONSIVE ======= */
+    @media (max-width: 1024px) {
+      .cat-grid { grid-template-columns: 1fr 1fr; }
+      .products-grid { grid-template-columns: repeat(2, 1fr); }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      /* Navigation */
+      .navbar { padding: 0.8rem 1.2rem; }
+      .nav-links { display: none; }
+
+      /* Hero */
+      .hero { height: 60vh; min-height: 420px; }
+      .hero-circle, .hero-diamond { display: none; }
+      .hero-content { padding: 0 1.2rem; max-width: 100%; text-align: center; }
+      .hero-content h1 { font-size: clamp(2rem, 8vw, 3rem); }
+      .hero-content p  { font-size: 0.9rem; }
+      .hero-btns { justify-content: center; flex-wrap: wrap; gap: 0.8rem; }
+
+      /* Marquee : ok par défaut */
+
+      /* Catégories : 2 colonnes, hauteur réduite */
+      .cat-grid { grid-template-columns: 1fr 1fr; gap: 0.6rem; padding: 0 1rem; }
+      .cat-card  { height: 200px; }
+
+      /* Carousel : cartes légèrement plus petites sur mobile */
+      .product-card { flex: 0 0 200px; }
+      .product-img  { aspect-ratio: 2/3; }
+
+      /* Footer */
+      .footer-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+
+      /* Back button */
+      .back-btn { font-size: 0; padding: 8px 10px; gap: 0; }
+      .back-btn svg { display: block; }
+    }
+
+    @media (max-width: 480px) {
+      .product-card { flex: 0 0 170px; }
+      .cat-grid { grid-template-columns: 1fr; }
+      .cat-card { height: 160px; }
+    }
+  </style>
+</head>
+<body>
+
+  <a href="../../index.html" class="back-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M19 12H5M12 19l-7-7 7-7"/>
+    </svg>
+    Portfolio
+  </a>
+
+  <!-- Topbar -->
+  <div class="topbar">Livraison offerte a partir de 500&euro; — Gravure personnalisee gratuite</div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="logo">Maison <span>de luxe</span></div>
+    <ul class="nav-links">
+      <li><a href="#">Collections</a></li>
+      <li><a href="#">Bagues</a></li>
+      <li><a href="#">Colliers</a></li>
+      <li><a href="#">Montres</a></li>
+      <li><a href="#">Sur Mesure</a></li>
+    </ul>
+    <div class="nav-icons">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/></svg>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-circle"></div>
+    <div class="hero-diamond"></div>
+    <div class="hero-content">
+      <p class="hero-tag">Nouvelle Collection 2024</p>
+      <h1 class="hero-title">L'art de la <em>joaillerie</em> depuis 1892</h1>
+      <p class="hero-desc">
+        Chaque piece est une oeuvre d'art, fabriquee a la main par nos maitres
+        artisans avec les materiaux les plus precieux.
+      </p>
+      <a href="#" class="hero-btn">
+        Decouvrir la collection
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </a>
+    </div>
+  </section>
+
+  <!-- Marquee -->
+  <div class="marquee">
+    <div class="marquee-track">
+      <span class="marquee-item">Or 18 carats</span><span class="marquee-dot">&diams;</span>
+      <span class="marquee-item">Diamants certifies</span><span class="marquee-dot">&diams;</span>
+      <span class="marquee-item">Fait main en France</span><span class="marquee-dot">&diams;</span>
+      <span class="marquee-item">Garantie a vie</span><span class="marquee-dot">&diams;</span>
+      <span class="marquee-item">Ecrin offert</span><span class="marquee-dot">&diams;</span>
+      <span class="marquee-item">Gravure personnalisee</span><span class="marquee-dot">&diams;</span>
+      <span class="marquee-item">Or 18 carats</span><span class="marquee-dot">&diams;</span>
+      <span class="marquee-item">Diamants certifies</span><span class="marquee-dot">&diams;</span>
+      <span class="marquee-item">Fait main en France</span><span class="marquee-dot">&diams;</span>
+      <span class="marquee-item">Garantie a vie</span><span class="marquee-dot">&diams;</span>
+      <span class="marquee-item">Ecrin offert</span><span class="marquee-dot">&diams;</span>
+      <span class="marquee-item">Gravure personnalisee</span><span class="marquee-dot">&diams;</span>
+    </div>
+  </div>
+
+  <!-- Categories -->
+  <section class="categories">
+    <div class="section-header lux-reveal">
+      <div class="section-tag">Nos Collections</div>
+      <h2 class="section-title">Categories</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="cat-grid">
+      <div class="cat-card lux-reveal">
+        <div class="cat-bg cat-bg-1"></div>
+        <div class="cat-shape"><div class="shape-ring"></div></div>
+        <div class="cat-info">
+          <h3 class="cat-name">Bagues</h3>
+          <p class="cat-count">24 pieces</p>
+        </div>
+      </div>
+      <div class="cat-card lux-reveal">
+        <div class="cat-bg cat-bg-2"></div>
+        <div class="cat-shape"><div class="shape-pendant"></div></div>
+        <div class="cat-info">
+          <h3 class="cat-name">Colliers</h3>
+          <p class="cat-count">18 pieces</p>
+        </div>
+      </div>
+      <div class="cat-card lux-reveal">
+        <div class="cat-bg cat-bg-3"></div>
+        <div class="cat-shape"><div class="shape-watch"></div></div>
+        <div class="cat-info">
+          <h3 class="cat-name">Montres</h3>
+          <p class="cat-count">12 pieces</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Products -->
+  <section class="products">
+    <div class="section-header lux-reveal">
+      <div class="section-tag">Selection</div>
+      <h2 class="section-title">Pieces d'Exception</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="products-grid">
+      <div class="product-card lux-reveal">
+        <div class="product-img">
+          <div class="product-visual"></div>
+          <span class="product-badge">Nouveau</span>
+        </div>
+        <h3 class="product-name">Alliance Eternelle</h3>
+        <p class="product-subtitle">Or blanc 18K — Diamant 0.5ct</p>
+        <p class="product-price">2 450 &euro;</p>
+      </div>
+      <div class="product-card lux-reveal">
+        <div class="product-img">
+          <div class="product-visual"></div>
+        </div>
+        <h3 class="product-name">Solitaire Celeste</h3>
+        <p class="product-subtitle">Or rose 18K — Saphir</p>
+        <p class="product-price">3 800 &euro;</p>
+      </div>
+      <div class="product-card lux-reveal">
+        <div class="product-img">
+          <div class="product-visual"></div>
+          <span class="product-badge">Exclusif</span>
+        </div>
+        <h3 class="product-name">Collier Aurore</h3>
+        <p class="product-subtitle">Or jaune 18K — Perles</p>
+        <p class="product-price">5 200 &euro;</p>
+      </div>
+      <div class="product-card lux-reveal">
+        <div class="product-img">
+          <div class="product-visual"></div>
+        </div>
+        <h3 class="product-name">Chronographe Royal</h3>
+        <p class="product-subtitle">Acier — Mouvement automatique</p>
+        <p class="product-price">8 900 &euro;</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Banner -->
+  <section class="banner lux-reveal">
+    <h2 class="banner-title">"Le luxe est dans chaque <span>detail</span>"</h2>
+    <p class="banner-desc">
+      Depuis 1892, Maison de luxe perpétue la tradition d'excellence
+      de la haute joaillerie française.
+    </p>
+  </section>
+
+  <!-- Footer -->
+  <footer class="lux-footer">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">Maison de luxe</div>
+        <p class="footer-brand-text">
+          La quintessence de l'art joaillier.
+          Chaque creation raconte une histoire d'elegance intemporelle.
+        </p>
+      </div>
+      <div class="footer-col">
+        <h4>Boutique</h4>
+        <a href="#">Bagues</a>
+        <a href="#">Colliers</a>
+        <a href="#">Montres</a>
+        <a href="#">Bracelets</a>
+      </div>
+      <div class="footer-col">
+        <h4>Maison</h4>
+        <a href="#">Notre histoire</a>
+        <a href="#">Savoir-faire</a>
+        <a href="#">Ateliers</a>
+        <a href="#">Presse</a>
+      </div>
+      <div class="footer-col">
+        <h4>Service</h4>
+        <a href="#">Contact</a>
+        <a href="#">Livraison</a>
+        <a href="#">Retours</a>
+        <a href="#">Sur mesure</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      Mockup par <span>Abdallah Chenaoui</span> — Projet Portfolio 2024
+    </div>
+  </footer>
+
+  <script>
+    /* Scroll reveal */
+    const reveals = document.querySelectorAll('.lux-reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    reveals.forEach(el => observer.observe(el));
+
+    /* ── Toast "mockup statique" ── */
+    const toastCSS = `
+      #mockup-toast {
+        position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+        background: rgba(10,8,5,0.92); border: 1px solid rgba(201,168,76,0.3);
+        color: #e8d5a3; font-size: 13px; font-family: sans-serif;
+        padding: 10px 18px; border-radius: 999px;
+        backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        white-space: nowrap; z-index: 99999; pointer-events: none;
+        transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
+        opacity: 0;
+      }
+      #mockup-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    `;
+    const style = document.createElement('style');
+    style.textContent = toastCSS;
+    document.head.appendChild(style);
+
+    const toast = document.createElement('div');
+    toast.id = 'mockup-toast';
+    toast.textContent = '💎 Mockup statique — fonctionnalité non implémentée';
+    document.body.appendChild(toast);
+
+    let toastTimer;
+    document.addEventListener('click', e => {
+      const target = e.target.closest('button, a, [role="button"]');
+      if (!target || target.closest('.back-btn') || target.href?.includes('index.html')) return;
+      e.preventDefault();
+      clearTimeout(toastTimer);
+      toast.classList.add('show');
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 2800);
+    });
+  </script>
+</body>
+</html>
