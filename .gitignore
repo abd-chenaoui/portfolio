@@ -1,0 +1,33 @@
+# Claude Code — fichiers privés (ne jamais publier)
+.claude/
+CLAUDE.md
+
+# Système
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Éditeurs
+.vscode/
+.idea/
+*.suo
+*.user
+
+# Logs
+*.log
+npm-debug.log*
+
+# Dépendances (si un build step est ajouté plus tard)
+node_modules/
+dist/
+build/
+
+# Variables d'environnement
+.env
+.env.local
+.env.production
+
+# Fichiers temporaires
+*.tmp
+*.swp
+*~
