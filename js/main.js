@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!typedEl) return;
 
     const strings = [
-      'Developpeur Web Frontend',
+      'Developpeur Web Full-Stack',
       'Createur d\'experiences digitales',
       'Passione par le design UI/UX',
       'Specialiste HTML, CSS & JavaScript',
