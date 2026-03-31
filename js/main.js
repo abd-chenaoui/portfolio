@@ -213,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (node.nodeType === Node.TEXT_NODE) {
           node.textContent.split('').forEach(char => {
             const span = document.createElement('span');
-            sp.an.className = 'section-char';
+            span.className = 'section-char';
             span.style.setProperty('--i', charIndex++);
             span.setAttribute('aria-hidden', 'true');
             span.textContent = char === ' ' ? '\u00A0' : char;
