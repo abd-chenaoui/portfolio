@@ -154,9 +154,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!typedEl) return;
 
     const strings = [
-      'Developpeur Web Full-Stack',
+      'Developpeur',
       'Createur d\'experiences digitales',
-      'Passione par le design UI/UX',
+      'Passioné par le design UI/UX',
       'Specialiste HTML, CSS & JavaScript',
     ];
 
@@ -213,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (node.nodeType === Node.TEXT_NODE) {
           node.textContent.split('').forEach(char => {
             const span = document.createElement('span');
-            span.className = 'section-char';
+            sp.an.className = 'section-char';
             span.style.setProperty('--i', charIndex++);
             span.setAttribute('aria-hidden', 'true');
             span.textContent = char === ' ' ? '\u00A0' : char;
